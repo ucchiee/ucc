@@ -33,15 +33,17 @@ struct Token {
 
 class TokenStream {
  public:
-  TokenStream(std::istream &s) : is{s}, current_token{Kind::end} {}
+  TokenStream(std::istream &s);
   ~TokenStream() = default;
 
-  Token get();
-  const Token &current() { return current_token; }
+  const Token &current();
+  bool consume(Kind kind);
+  double expect_number();
 
  private:
   std::istream &is;
   Token current_token{Kind::end};
-};
 
+  Token get();
+};
 }  // namespace Lexer

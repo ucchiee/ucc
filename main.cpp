@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   cout << ".intel_syntax noprefix" << endl;
   cout << ".globl main" << endl;
   cout << "main:" << endl;
-  cout << "  mov rax, " << ts.get().number_value << endl;
+  cout << "  mov rax, " << ts.expect_number() << endl;
   cout << "  ret" << endl;
   return 0;
 }

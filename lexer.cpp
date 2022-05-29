@@ -1,8 +1,14 @@
 #include "lexer.h"
 
 #include <cctype>
+#include <cstdlib>
 #include <iostream>
 using namespace std;
+
+Lexer::TokenStream::TokenStream(std::istream& s)
+    : is{s}, current_token{Lexer::Kind::end} {
+  get();
+}
 
 Lexer::Token Lexer::TokenStream::get() {
   // needs impl
@@ -53,4 +59,23 @@ Lexer::Token Lexer::TokenStream::get() {
       // unexpected
       return current_token = {Kind::end};
   }
+}
+
+const Lexer::Token& Lexer::TokenStream::current() { return current_token; }
+
+bool Lexer::TokenStream::consume(Lexer::Kind kind) {
+  if (current().kind != kind) {
+    return false;
+  }
+  get();
+  return true;
+}
+
+double Lexer::TokenStream::expect_number() {
+  if (current().kind != Lexer::Kind::tk_int) {
+    exit(-1);
+  }
+  double tmp = current().number_value;
+  get();
+  return tmp;
 }
