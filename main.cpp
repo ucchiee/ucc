@@ -19,9 +19,10 @@ int main(int argc, char** argv) {
   while (!ts.at_eof()) {
     if (ts.consume('+')) {
       cout << "  add rax, " << ts.expect_number() << endl;
-    }
-    if (ts.consume('-')) {
+    } else if (ts.consume('-')) {
       cout << "  sub rax, " << ts.expect_number() << endl;
+    } else {
+      break;
     }
   }
   cout << "  ret" << endl;

@@ -21,5 +21,8 @@ assert 42 42
 assert 100 '99+1'
 assert 123 '100 + 20 + 3'
 assert 80 '100 - 10 - 10'
+assert 12 '3+3*3'
+assert 4 '3+3/3'
+assert 18 '(3+3)*3'
 
 echo OK
