@@ -8,7 +8,7 @@ using namespace std;
 
 Lexer::TokenStream::TokenStream(char* program)
     : m_program{program}, m_current_token_idx{0} {
-  tokeninze();
+  tokenize();
 }
 
 bool Lexer::TokenStream::consume(Lexer::Kind kind) {
@@ -32,7 +32,7 @@ bool Lexer::TokenStream::at_eof() {
   return !(m_current_token_idx < m_token_vec.size());
 }
 
-void Lexer::TokenStream::tokeninze() {
+void Lexer::TokenStream::tokenize() {
   char* p;
   Token token;
 
