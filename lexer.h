@@ -28,7 +28,7 @@ enum class Kind : int {
 struct Token {
   Kind kind;
   std::string string_value;
-  double number_value;
+  int number_value;
 };
 
 class TokenStream {
@@ -38,7 +38,7 @@ class TokenStream {
 
   const Token &current();
   bool consume(Kind kind);
-  double expect_number();
+  int expect_number();
 
  private:
   std::istream &is;
