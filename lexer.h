@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <vector>
 
@@ -28,7 +29,7 @@ enum class Kind : int {
 
 struct Token {
   Kind kind;
-  char* lexeme_string;
+  char *lexeme_string;
   int len;
   int lexeme_number;
 };
@@ -40,6 +41,7 @@ class TokenStream {
 
   bool consume(Kind kind);
   bool consume(char kind);
+  void expect(char op);
   int expect_number();
   bool at_eof();
 
