@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 namespace Lexer {
 
@@ -27,23 +28,25 @@ enum class Kind : int {
 
 struct Token {
   Kind kind;
-  std::string string_value;
-  int number_value;
+  char* lexeme_string;
+  int len;
+  int lexeme_number;
 };
 
 class TokenStream {
  public:
-  TokenStream(std::istream &s);
+  TokenStream(char *program);
   ~TokenStream() = default;
 
-  const Token &current();
   bool consume(Kind kind);
   int expect_number();
 
  private:
-  std::istream &is;
-  Token current_token{Kind::end};
+  char *program;
+  std::vector<Token> token_vec;
+  int current_token_idx;
 
-  Token get();
+  void tokeninze();
+  const Token &current();
 };
 }  // namespace Lexer
