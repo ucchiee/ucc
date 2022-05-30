@@ -8,7 +8,7 @@ using namespace std;
 
 Lexer::TokenStream::TokenStream(char* program)
     : m_program{program}, m_current_token_idx{0} {
-  tokeninze();
+  tokenize();
 }
 
 bool Lexer::TokenStream::consume(Lexer::Kind kind) {
@@ -23,24 +23,29 @@ int Lexer::TokenStream::expect_number() {
   if (current().kind != Lexer::Kind::tk_int) {
     exit(-1);
   }
+  int val = current().lexeme_number;
   m_current_token_idx++;
-  return current().lexeme_number;
+  return val;
 }
 
 bool Lexer::TokenStream::at_eof() {
   return !(m_current_token_idx < m_token_vec.size());
 }
 
-void Lexer::TokenStream::tokeninze() {
-  char ch;
-  istringstream is{m_program};
+void Lexer::TokenStream::tokenize() {
+  char* p;
   Token token;
+
+  p = m_program;
 
   for (;;) {
     // skip space
-    is >> ws;
+    if (isspace(*p)) {
+      p++;
+      continue;
+    }
 
-    switch (is.peek()) {
+    switch (*p) {
       case 0:
         m_token_vec.push_back({Kind::end});
         return;
@@ -56,7 +61,7 @@ void Lexer::TokenStream::tokeninze() {
       case '9':
         // number
         token.kind = Kind::tk_int;  // TODO: ひとまずintだけ
-        is >> token.lexeme_number;
+        token.lexeme_number = strtol(p, &p, 10);
         m_token_vec.push_back(token);
         continue;
       default:

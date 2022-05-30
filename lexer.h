@@ -47,7 +47,7 @@ class TokenStream {
   std::vector<Token> m_token_vec;
   int m_current_token_idx;
 
-  void tokeninze();
+  void tokenize();
   const Token &current();
 };
 }  // namespace Lexer
