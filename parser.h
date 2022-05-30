@@ -5,7 +5,7 @@
 #include "ast.h"
 #include "lexer.h"
 
-namespace Parser {
+namespace parser {
 
 class Parser {
  public:
@@ -14,7 +14,7 @@ class Parser {
   Parser(const Parser &) = default;
   Parser &operator=(Parser &&) = delete;
   Parser &operator=(const Parser &) = delete;
-  ~Parser();
+  ~Parser() = default;
 
   std::unique_ptr<Ast::Node> expr();
   std::unique_ptr<Ast::Node> mul();
@@ -24,4 +24,4 @@ class Parser {
   Lexer::TokenStream &m_ts;
 };
 
-}  // namespace Parser
+}  // namespace parser

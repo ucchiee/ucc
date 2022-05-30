@@ -8,9 +8,9 @@
 using namespace std;
 using namespace Ast;
 
-Parser::Parser::Parser(Lexer::TokenStream &ts) : m_ts{ts} {}
+parser::Parser::Parser(Lexer::TokenStream &ts) : m_ts{ts} {}
 
-unique_ptr<Node> Parser::Parser::expr() {
+unique_ptr<Node> parser::Parser::expr() {
   unique_ptr<Node> node = mul();
 
   for (;;) {
@@ -24,7 +24,7 @@ unique_ptr<Node> Parser::Parser::expr() {
   }
 }
 
-unique_ptr<Node> Parser::Parser::mul() {
+unique_ptr<Node> parser::Parser::mul() {
   unique_ptr<Node> node = primary();
 
   for (;;) {
@@ -38,7 +38,7 @@ unique_ptr<Node> Parser::Parser::mul() {
   }
 }
 
-unique_ptr<Node> Parser::Parser::primary() {
+unique_ptr<Node> parser::Parser::primary() {
   unique_ptr<Node> node;
   if (m_ts.consume('(')) {
     node = expr();
