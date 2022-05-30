@@ -16,7 +16,7 @@ Lexer::Token Lexer::TokenStream::get() {
 
   do {  // skip space
     if (!is.get(ch)) return current_token = {Kind::end};
-  } while (ch != '\n' && isspace(ch));
+  } while (isspace(ch));
 
   switch (ch) {
     case 0:
@@ -31,7 +31,6 @@ Lexer::Token Lexer::TokenStream::get() {
     case '7':
     case '8':
     case '9':
-    case '.':
       // number
       is.putback(ch);
       is >> current_token.number_value;
@@ -71,11 +70,11 @@ bool Lexer::TokenStream::consume(Lexer::Kind kind) {
   return true;
 }
 
-double Lexer::TokenStream::expect_number() {
+int Lexer::TokenStream::expect_number() {
   if (current().kind != Lexer::Kind::tk_int) {
     exit(-1);
   }
-  double tmp = current().number_value;
+  int tmp = current().number_value;
   get();
   return tmp;
 }
