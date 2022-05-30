@@ -7,7 +7,7 @@
 using namespace std;
 
 Lexer::TokenStream::TokenStream(char* program)
-    : program{program}, current_token_idx{0} {
+    : m_program{program}, m_current_token_idx{0} {
   tokeninze();
 }
 
@@ -15,7 +15,7 @@ bool Lexer::TokenStream::consume(Lexer::Kind kind) {
   if (current().kind != kind) {
     return false;
   }
-  current_token_idx++;
+  m_current_token_idx++;
   return true;
 }
 
@@ -23,13 +23,13 @@ int Lexer::TokenStream::expect_number() {
   if (current().kind != Lexer::Kind::tk_int) {
     exit(-1);
   }
-  current_token_idx++;
+  m_current_token_idx++;
   return current().lexeme_number;
 }
 
 void Lexer::TokenStream::tokeninze() {
   char ch;
-  istringstream is{program};
+  istringstream is{m_program};
   Token token;
 
   // skip space
@@ -38,7 +38,7 @@ void Lexer::TokenStream::tokeninze() {
   for (;;) {
     switch (is.peek()) {
       case 0:
-        token_vec.push_back({Kind::end});
+        m_token_vec.push_back({Kind::end});
         return;
       case '0':
       case '1':
@@ -53,7 +53,7 @@ void Lexer::TokenStream::tokeninze() {
         // number
         token.kind = Kind::tk_int;  // TODO: ひとまずintだけ
         is >> token.lexeme_number;
-        token_vec.push_back(token);
+        m_token_vec.push_back(token);
         continue;
       default:
         // if (isalpha(ch) || ch == '_') {
@@ -75,12 +75,12 @@ void Lexer::TokenStream::tokeninze() {
         //   return current_token = {(Kind)ch};
         // }
         // unexpected
-        token_vec.push_back({Kind::end});
+        m_token_vec.push_back({Kind::end});
         return;
     }
   }
 }
 
 const Lexer::Token& Lexer::TokenStream::current() {
-  return token_vec.at(current_token_idx);
+  return m_token_vec.at(m_current_token_idx);
 }

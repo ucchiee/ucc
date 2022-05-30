@@ -42,9 +42,9 @@ class TokenStream {
   int expect_number();
 
  private:
-  char *program;
-  std::vector<Token> token_vec;
-  int current_token_idx;
+  char *m_program;
+  std::vector<Token> m_token_vec;
+  int m_current_token_idx;
 
   void tokeninze();
   const Token &current();
