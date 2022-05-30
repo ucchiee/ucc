@@ -10,8 +10,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  std::istringstream iss{argv[1]};
-  Lexer::TokenStream ts{iss};
+  Lexer::TokenStream ts{argv[1]};
 
   cout << ".intel_syntax noprefix" << endl;
   cout << ".globl main" << endl;
