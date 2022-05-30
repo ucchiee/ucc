@@ -26,6 +26,13 @@ bool Lexer::TokenStream::consume(char kind) {
   return true;
 }
 
+void Lexer::TokenStream::expect(char op) {
+  if (current().kind != Lexer::Kind(op)) {
+    exit(-1);
+  }
+  m_current_token_idx++;
+}
+
 int Lexer::TokenStream::expect_number() {
   if (current().kind != Lexer::Kind::tk_int) {
     exit(-1);
@@ -74,6 +81,10 @@ void Lexer::TokenStream::tokenize() {
         continue;
       case '+':
       case '-':
+      case '*':
+      case '/':
+      case '(':
+      case ')':
         m_token_vec.push_back({Kind(*p++)});
         continue;
       default:

@@ -1,7 +1,11 @@
 #include <iostream>
+#include <memory>
 #include <sstream>
 
+#include "ast.h"
+#include "gen.h"
 #include "lexer.h"
+#include "parser.h"
 using namespace std;
 
 int main(int argc, char** argv) {
@@ -11,19 +15,15 @@ int main(int argc, char** argv) {
   }
 
   Lexer::TokenStream ts{argv[1]};
+  parser::Parser parser{ts};
+  unique_ptr<Ast::Node> node = parser.expr();
 
   cout << ".intel_syntax noprefix" << endl;
   cout << ".globl main" << endl;
   cout << "main:" << endl;
-  cout << "  mov rax, " << ts.expect_number() << endl;
-  while (!ts.at_eof()) {
-    if (ts.consume('+')) {
-      cout << "  add rax, " << ts.expect_number() << endl;
-    }
-    if (ts.consume('-')) {
-      cout << "  sub rax, " << ts.expect_number() << endl;
-    }
-  }
+
+  codegen::gen(move(node));
+  cout << "  pop rax" << endl;
   cout << "  ret" << endl;
   return 0;
 }
