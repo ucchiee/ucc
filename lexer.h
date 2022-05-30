@@ -40,6 +40,7 @@ class TokenStream {
 
   bool consume(Kind kind);
   int expect_number();
+  bool at_eof();
 
  private:
   char *m_program;

@@ -27,6 +27,10 @@ int Lexer::TokenStream::expect_number() {
   return current().lexeme_number;
 }
 
+bool Lexer::TokenStream::at_eof() {
+  return !(m_current_token_idx < m_token_vec.size());
+}
+
 void Lexer::TokenStream::tokeninze() {
   char ch;
   istringstream is{m_program};
