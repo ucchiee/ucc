@@ -37,24 +37,24 @@ Lexer::Token Lexer::TokenStream::get() {
       current_token.kind = Kind::tk_int;  // TODO: ひとまずintだけ
       return current_token;
     default:
-      if (isalpha(ch) || ch == '_') {
-        // id, reserved(TODO)
-        current_token.string_value = ch;
-        while (is.get(ch)) {
-          if (isalnum(ch) || ch == '_') {
-            current_token.string_value += ch;
-          } else {
-            is.putback(ch);
-            break;
-          }
-        }
-        current_token.kind = {Kind::tk_id};
-        return current_token;
-      } else {
-        // TODO: literal, ==, &&, ||
-        // 1 char ascii symbol
-        return current_token = {(Kind)ch};
-      }
+      // if (isalpha(ch) || ch == '_') {
+      //   // id, reserved(TODO)
+      //   current_token.string_value = ch;
+      //   while (is.get(ch)) {
+      //     if (isalnum(ch) || ch == '_') {
+      //       current_token.string_value += ch;
+      //     } else {
+      //       is.putback(ch);
+      //       break;
+      //     }
+      //   }
+      //   current_token.kind = {Kind::tk_id};
+      //   return current_token;
+      // } else {
+      //   // TODO: literal, ==, &&, ||
+      //   // 1 char ascii symbol
+      //   return current_token = {(Kind)ch};
+      // }
       // unexpected
       return current_token = {Kind::end};
   }
