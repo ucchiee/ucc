@@ -32,10 +32,10 @@ void Lexer::TokenStream::tokeninze() {
   istringstream is{m_program};
   Token token;
 
-  // skip space
-  is >> ws;
-
   for (;;) {
+    // skip space
+    is >> ws;
+
     switch (is.peek()) {
       case 0:
         m_token_vec.push_back({Kind::end});
