@@ -1,3 +1,4 @@
 cmake_minimum_required(VERSION 3.1)
 project(ucchiee_c_compiler CXX)
-add_executable(ucc main.cpp)
+set(CMAKE_CXX_STANDARD 20)
+add_executable(ucc main.cpp lexer.cpp)
