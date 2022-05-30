@@ -39,6 +39,7 @@ class TokenStream {
   ~TokenStream() = default;
 
   bool consume(Kind kind);
+  bool consume(char kind);
   int expect_number();
   bool at_eof();
 

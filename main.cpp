@@ -16,6 +16,14 @@ int main(int argc, char** argv) {
   cout << ".globl main" << endl;
   cout << "main:" << endl;
   cout << "  mov rax, " << ts.expect_number() << endl;
+  while (!ts.at_eof()) {
+    if (ts.consume('+')) {
+      cout << "  add rax, " << ts.expect_number() << endl;
+    }
+    if (ts.consume('-')) {
+      cout << "  sub rax, " << ts.expect_number() << endl;
+    }
+  }
   cout << "  ret" << endl;
   return 0;
 }

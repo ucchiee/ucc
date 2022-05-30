@@ -18,5 +18,8 @@ assert() {
 
 assert 0 0
 assert 42 42
+assert 100 '99+1'
+assert 123 '100 + 20 + 3'
+assert 80 '100 - 10 - 10'
 
 echo OK
