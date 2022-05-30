@@ -18,6 +18,13 @@ bool Lexer::TokenStream::consume(Lexer::Kind kind) {
   m_current_token_idx++;
   return true;
 }
+bool Lexer::TokenStream::consume(char kind) {
+  if (current().kind != Lexer::Kind(kind)) {
+    return false;
+  }
+  m_current_token_idx++;
+  return true;
+}
 
 int Lexer::TokenStream::expect_number() {
   if (current().kind != Lexer::Kind::tk_int) {
@@ -29,7 +36,8 @@ int Lexer::TokenStream::expect_number() {
 }
 
 bool Lexer::TokenStream::at_eof() {
-  return !(m_current_token_idx < m_token_vec.size());
+  // do not forget Kind::end
+  return !(m_current_token_idx < m_token_vec.size() - 1);
 }
 
 void Lexer::TokenStream::tokenize() {
@@ -63,6 +71,10 @@ void Lexer::TokenStream::tokenize() {
         token.kind = Kind::tk_int;  // TODO: ひとまずintだけ
         token.lexeme_number = strtol(p, &p, 10);
         m_token_vec.push_back(token);
+        continue;
+      case '+':
+      case '-':
+        m_token_vec.push_back({Kind(*p++)});
         continue;
       default:
         // if (isalpha(ch) || ch == '_') {
