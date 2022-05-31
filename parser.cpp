@@ -25,17 +25,26 @@ unique_ptr<Node> parser::Parser::expr() {
 }
 
 unique_ptr<Node> parser::Parser::mul() {
-  unique_ptr<Node> node = primary();
+  unique_ptr<Node> node = unary();
 
   for (;;) {
     if (m_ts.consume('*')) {
-      node = create_node(NodeKind::nd_mul, move(node), primary());
+      node = create_node(NodeKind::nd_mul, move(node), unary());
     } else if (m_ts.consume('/')) {
-      node = create_node(NodeKind::nd_div, move(node), primary());
+      node = create_node(NodeKind::nd_div, move(node), unary());
     } else {
       return move(node);
     }
   }
+}
+
+unique_ptr<Node> parser::Parser::unary() {
+  if (m_ts.consume('+')) {
+    return primary();
+  } else if (m_ts.consume('-')) {
+    return create_node(Ast::NodeKind::nd_sub, create_num(0), primary());
+  }
+  return primary();
 }
 
 unique_ptr<Node> parser::Parser::primary() {
