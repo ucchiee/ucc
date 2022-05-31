@@ -18,6 +18,7 @@ class Parser {
 
   std::unique_ptr<Ast::Node> expr();
   std::unique_ptr<Ast::Node> mul();
+  std::unique_ptr<Ast::Node> unary();
   std::unique_ptr<Ast::Node> primary();
 
  private:
