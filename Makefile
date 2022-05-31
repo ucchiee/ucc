@@ -1,7 +1,7 @@
 # now using Makefile for shortcut
 
 build/ucc:
-	mkdir build && cd build && cmake .. && cmake --build .
+	mkdir -p build && cd build && cmake .. && cmake --build .
 
 test: build/ucc
 	./test.sh
@@ -9,4 +9,4 @@ test: build/ucc
 clean:
 	rm -fr build *.o *~ tmp*
 
-.PHONY: test clean
+.PHONY: build/ucc test clean

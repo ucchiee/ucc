@@ -42,7 +42,7 @@ unique_ptr<Node> parser::Parser::unary() {
   if (m_ts.consume('+')) {
     return primary();
   } else if (m_ts.consume('-')) {
-    return create_node(Ast::NodeKind::nd_sub, create_num(0), primary());
+    return create_node(NodeKind::nd_sub, create_num(0), primary());
   }
   return primary();
 }
