@@ -17,6 +17,9 @@ class Parser {
   ~Parser() = default;
 
   std::unique_ptr<Ast::Node> expr();
+  std::unique_ptr<Ast::Node> equality();
+  std::unique_ptr<Ast::Node> relational();
+  std::unique_ptr<Ast::Node> add();
   std::unique_ptr<Ast::Node> mul();
   std::unique_ptr<Ast::Node> unary();
   std::unique_ptr<Ast::Node> primary();

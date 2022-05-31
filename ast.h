@@ -8,6 +8,10 @@ enum class NodeKind {
   nd_mul,
   nd_div,
   nd_num,
+  nd_eq,
+  nd_neq,
+  nd_le,
+  nd_leq,
 };
 
 struct Node {

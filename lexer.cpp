@@ -47,6 +47,13 @@ bool Lexer::TokenStream::at_eof() {
   return !(m_current_token_idx < m_token_vec.size() - 1);
 }
 
+void Lexer::TokenStream::debug_current() {
+  cout << "kind: " << int(current().kind) << endl;
+  cout << "lexeme_string: " << current().lexeme_string << endl;
+  cout << "len: " << current().len << endl;
+  cout << "lexeme_number: " << current().lexeme_number << endl;
+}
+
 void Lexer::TokenStream::tokenize() {
   char* p;
   Token token;
@@ -85,8 +92,46 @@ void Lexer::TokenStream::tokenize() {
       case '/':
       case '(':
       case ')':
-        m_token_vec.push_back({Kind(*p++)});
+        m_token_vec.push_back({Kind(*p++), p, 1});
         continue;
+      case '=':
+        if ((p + 1) && *(p + 1) == '=') {
+          token = {Kind::op_eq, p, 2};
+          ++ ++p;
+          m_token_vec.push_back(token);
+          continue;
+        }
+      case '!':
+        if ((p + 1) && *(p + 1) == '=') {
+          token = {Kind::op_neq, p, 2};
+          ++ ++p;
+          m_token_vec.push_back(token);
+          continue;
+        }
+      case '<':
+        if ((p + 1) && *(p + 1) == '=') {  // <=
+          token = {Kind::op_leq, p, 2};
+          ++ ++p;
+          m_token_vec.push_back(token);
+          continue;
+        } else {  // <
+          token = {Kind::op_le, p, 1};
+          ++p;
+          m_token_vec.push_back(token);
+          continue;
+        }
+      case '>':
+        if ((p + 1) && *(p + 1) == '=') {  // >=
+          token = {Kind::op_greq, p, 2};
+          ++ ++p;
+          m_token_vec.push_back(token);
+          continue;
+        } else {  // <
+          token = {Kind::op_gr, p, 1};
+          ++p;
+          m_token_vec.push_back(token);
+          continue;
+        }
       default:
         // if (isalpha(ch) || ch == '_') {
         //   // id, reserved(TODO)

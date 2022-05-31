@@ -33,6 +33,26 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       cout << "  cqo" << endl;
       cout << "  idiv rdi" << endl;
       break;
+    case Ast::NodeKind::nd_eq:
+      cout << "  cmp rax, rdi" << endl;
+      cout << "  sete al" << endl;
+      cout << "  movzb rax, al" << endl;
+      break;
+    case Ast::NodeKind::nd_neq:
+      cout << "  cmp rax, rdi" << endl;
+      cout << "  setne al" << endl;
+      cout << "  movzb rax, al" << endl;
+      break;
+    case Ast::NodeKind::nd_le:
+      cout << "  cmp rax, rdi" << endl;
+      cout << "  setl al" << endl;
+      cout << "  movzb rax, al" << endl;
+      break;
+    case Ast::NodeKind::nd_leq:
+      cout << "  cmp rax, rdi" << endl;
+      cout << "  setle al" << endl;
+      cout << "  movzb rax, al" << endl;
+      break;
     default:
       exit(-1);
   }
