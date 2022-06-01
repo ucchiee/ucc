@@ -31,5 +31,7 @@ assert 0 '5>10'
 assert 0 '5>=10'
 assert 0 '5==10'
 assert 1 '5!=10'
+assert 4 'a = 4;'
+assert 13 'a = 4;b = 5 * 6 - 8;(a + b) / 2;'
 
 echo OK
