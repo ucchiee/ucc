@@ -11,6 +11,42 @@ using namespace Ast;
 parser::Parser::Parser(Lexer::TokenStream &ts) : m_ts{ts} {}
 
 unique_ptr<Node> parser::Parser::expr() {
+  return equality();
+}
+
+unique_ptr<Ast::Node> parser::Parser::equality() {
+  unique_ptr<Node> node = relational();
+
+  for (;;) {
+    if (m_ts.consume(Lexer::Kind::op_eq)) {
+      node = create_node(NodeKind::nd_eq, move(node), relational());
+    } else if (m_ts.consume(Lexer::Kind::op_neq)) {
+      node = create_node(NodeKind::nd_neq, move(node), relational());
+    } else {
+      return move(node);
+    }
+  }
+}
+
+unique_ptr<Ast::Node> parser::Parser::relational() {
+  unique_ptr<Node> node = add();
+
+  for (;;) {
+    if (m_ts.consume(Lexer::Kind::op_le)) {
+      node = create_node(NodeKind::nd_le, move(node), add());
+    } else if (m_ts.consume(Lexer::Kind::op_leq)) {
+      node = create_node(NodeKind::nd_leq, move(node), add());
+    } else if (m_ts.consume(Lexer::Kind::op_gr)) {
+      node = create_node(NodeKind::nd_le, add(), move(node));
+    } else if (m_ts.consume(Lexer::Kind::op_greq)) {
+      node = create_node(NodeKind::nd_leq, add(), move(node));
+    } else {
+      return move(node);
+    }
+  }
+}
+
+unique_ptr<Node> parser::Parser::add() {
   unique_ptr<Node> node = mul();
 
   for (;;) {
