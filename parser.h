@@ -1,9 +1,12 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "ast.h"
 #include "lexer.h"
+
+extern std::vector<std::unique_ptr<Ast::Node>> node_vec;
 
 namespace parser {
 
@@ -16,7 +19,10 @@ class Parser {
   Parser &operator=(const Parser &) = delete;
   ~Parser() = default;
 
+  void program();
+  std::unique_ptr<Ast::Node> stmt();
   std::unique_ptr<Ast::Node> expr();
+  std::unique_ptr<Ast::Node> assign();
   std::unique_ptr<Ast::Node> equality();
   std::unique_ptr<Ast::Node> relational();
   std::unique_ptr<Ast::Node> add();
