@@ -26,6 +26,13 @@ bool Lexer::TokenStream::consume(char kind) {
   return true;
 }
 
+Lexer::Token Lexer::TokenStream::consume_ident() {
+  if (current().kind != Lexer::Kind::tk_id) {
+    return {Lexer::Kind::end};
+  }
+  return m_token_vec[m_current_token_idx++];
+}
+
 void Lexer::TokenStream::expect(char op) {
   if (current().kind != Lexer::Kind(op)) {
     exit(-1);
@@ -92,13 +99,19 @@ void Lexer::TokenStream::tokenize() {
       case '/':
       case '(':
       case ')':
-        m_token_vec.push_back({Kind(*p++), p, 1});
+      case ';':
+        m_token_vec.push_back({Kind(*p), p, 1});
+        ++p;
         continue;
       case '=':
         if ((p + 1) && *(p + 1) == '=') {
           token = {Kind::op_eq, p, 2};
           ++ ++p;
           m_token_vec.push_back(token);
+          continue;
+        } else {  // assign
+          m_token_vec.push_back({(Kind)*p, p, 1});
+          ++p;
           continue;
         }
       case '!':
@@ -133,6 +146,12 @@ void Lexer::TokenStream::tokenize() {
           continue;
         }
       default:
+        if ('a' <= *p && *p <= 'z') {
+          token = {Kind::tk_id, p, 1};
+          ++p;
+          m_token_vec.push_back(token);
+          continue;
+        }
         // if (isalpha(ch) || ch == '_') {
         //   // id, reserved(TODO)
         //   current_token.string_value = ch;

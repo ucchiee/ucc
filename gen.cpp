@@ -8,9 +8,28 @@
 using namespace std;
 
 void codegen::gen(unique_ptr<Ast::Node> node) {
-  if (node->kind == Ast::NodeKind::nd_num) {
-    cout << "  push " << node->val << endl;
-    return;
+  switch (node->kind) {
+    case Ast::NodeKind::nd_num:
+      cout << "  push " << node->val << endl;
+      return;
+    case Ast::NodeKind::nd_lval:
+      gen_lval(move(node));
+      // addr of lval is on the stack top
+      cout << "  pop rax" << endl;
+      cout << "  mov rax, [rax]" << endl;
+      cout << "  push rax" << endl;
+      return;
+    case Ast::NodeKind::nd_assign:
+      gen_lval(move(node->left));
+      gen(move(node->right));
+
+      cout << "  pop rdi" << endl;
+      cout << "  pop rax" << endl;  // addr of lval
+      cout << "  mov [rax], rdi" << endl;
+      cout << "  push rdi" << endl;
+      return;
+    default:
+      break;
   }
 
   gen(move(node->left));
@@ -57,5 +76,15 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       exit(-1);
   }
 
+  cout << "  push rax" << endl;
+}
+
+void codegen::gen_lval(unique_ptr<Ast::Node> node) {
+  // push addr of lval (i.e. rbp - 8)
+  if (node->kind != Ast::NodeKind::nd_lval) {
+    exit(-1);
+  }
+  cout << "  mov rax, rbp" << endl;
+  cout << "  sub rax, " << node->offset << endl;
   cout << "  push rax" << endl;
 }

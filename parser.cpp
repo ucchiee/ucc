@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <memory>
+#include <vector>
 
 #include "ast.h"
 #include "lexer.h"
@@ -10,8 +11,27 @@ using namespace Ast;
 
 parser::Parser::Parser(Lexer::TokenStream &ts) : m_ts{ts} {}
 
-unique_ptr<Node> parser::Parser::expr() {
-  return equality();
+void parser::Parser::program() {
+  while (!m_ts.at_eof()) {
+    node_vec.push_back(move(stmt()));
+  }
+}
+
+unique_ptr<Node> parser::Parser::stmt() {
+  unique_ptr<Node> node = expr();
+  m_ts.consume(';');
+  return node;
+}
+
+unique_ptr<Node> parser::Parser::expr() { return assign(); }
+
+unique_ptr<Node> parser::Parser::assign() {
+  unique_ptr<Node> node = equality();
+  if (m_ts.consume('=')) {
+    return create_node(NodeKind::nd_assign, move(node), assign());
+  } else {
+    return move(node);
+  }
 }
 
 unique_ptr<Ast::Node> parser::Parser::equality() {
@@ -88,6 +108,13 @@ unique_ptr<Node> parser::Parser::primary() {
   if (m_ts.consume('(')) {
     node = expr();
     m_ts.expect(')');
+    return node;
+  }
+  Lexer::Token tok = m_ts.consume_ident();
+  if (tok.kind != Lexer::Kind::end) {
+    node = make_unique<Node>();
+    node->kind = NodeKind::nd_lval;
+    node->offset = (tok.lexeme_string[0] - 'a' + 1) * 8;
     return node;
   }
 
