@@ -33,5 +33,7 @@ assert 0 '5==10;'
 assert 1 '5!=10;'
 assert 4 'a = 4;'
 assert 13 'a = 4;b = 5 * 6 - 8;(a + b) / 2;'
+assert 13 'foo = 4;bar = 5 * 6 - 8;(foo + bar) / 2;'
+assert 5 'foo = 1;bar = 4; return foo+bar;'
 
 echo OK
