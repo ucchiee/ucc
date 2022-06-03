@@ -9,7 +9,8 @@
 #include "parser.h"
 using namespace std;
 
-vector<unique_ptr<Ast::Node>> node_vec;
+extern vector<unique_ptr<Ast::Node>> node_vec;
+extern vector<shared_ptr<parser::LVal>> lval_vec;
 
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -32,7 +33,7 @@ int main(int argc, char** argv) {
 
   // code genertor for each node
   // wanna use auto for
-  for (int i = 0; i <node_vec.size(); i++) {
+  for (int i = 0; i < node_vec.size(); i++) {
     codegen::gen(move(node_vec.at(i)));
 
     cout << "  pop rax" << endl;
