@@ -152,12 +152,6 @@ void Lexer::TokenStream::tokenize() {
           continue;
         }
       default:
-        // if ('a' <= *p && *p <= 'z') {
-        //   token = {Kind::tk_id, p, 1};
-        //   ++p;
-        //   m_token_vec.push_back(token);
-        //   continue;
-        // }
         if (isalpha(*p) || *p == '_') {
           // id, reserved(TODO)
           char* tmp = p;
@@ -168,7 +162,7 @@ void Lexer::TokenStream::tokenize() {
           if (len == 6 && std::memcmp(tmp, "return", 6) == 0) {
             token = {Kind::kw_return, tmp, len};
           } else {
-            token = {Kind::tk_id, tmp, int(p - tmp)};
+            token = {Kind::tk_id, tmp, len};
           }
           m_token_vec.push_back(token);
           continue;
