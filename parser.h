@@ -6,9 +6,13 @@
 #include "ast.h"
 #include "lexer.h"
 
-extern std::vector<std::unique_ptr<Ast::Node>> node_vec;
-
 namespace parser {
+
+struct LVal {
+  char *name;
+  int len;
+  int offset;
+};
 
 class Parser {
  public:
@@ -33,5 +37,7 @@ class Parser {
  private:
   Lexer::TokenStream &m_ts;
 };
+
+std::shared_ptr<parser::LVal> find_lval(Lexer::Token token);
 
 }  // namespace parser

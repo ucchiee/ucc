@@ -9,6 +9,13 @@ using namespace std;
 
 void codegen::gen(unique_ptr<Ast::Node> node) {
   switch (node->kind) {
+    case Ast::NodeKind::nd_return:
+      gen(move(node->left));
+      cout << "  pop rax" << endl;
+      cout << "  mov rsp, rbp" << endl;
+      cout << "  pop rbp" << endl;
+      cout << "  ret" << endl;
+      return;
     case Ast::NodeKind::nd_num:
       cout << "  push " << node->val << endl;
       return;

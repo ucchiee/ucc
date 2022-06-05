@@ -2,9 +2,15 @@
 
 #include <cctype>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <sstream>
+
+#include "parser.h"
+
 using namespace std;
+
+extern vector<shared_ptr<parser::LVal>> lval_vec;
 
 Lexer::TokenStream::TokenStream(char* program)
     : m_program{program}, m_current_token_idx{0} {
@@ -146,30 +152,21 @@ void Lexer::TokenStream::tokenize() {
           continue;
         }
       default:
-        if ('a' <= *p && *p <= 'z') {
-          token = {Kind::tk_id, p, 1};
-          ++p;
+        if (isalpha(*p) || *p == '_') {
+          // id, reserved(TODO)
+          char* tmp = p;
+          while (isalnum(*p) || *p == '_') ++p;
+          int len = int(p - tmp);
+
+          // Check whether this is reserved.
+          if (len == 6 && std::memcmp(tmp, "return", 6) == 0) {
+            token = {Kind::kw_return, tmp, len};
+          } else {
+            token = {Kind::tk_id, tmp, len};
+          }
           m_token_vec.push_back(token);
           continue;
         }
-        // if (isalpha(ch) || ch == '_') {
-        //   // id, reserved(TODO)
-        //   current_token.string_value = ch;
-        //   while (is.get(ch)) {
-        //     if (isalnum(ch) || ch == '_') {
-        //       current_token.string_value += ch;
-        //     } else {
-        //       is.putback(ch);
-        //       break;
-        //     }
-        //   }
-        //   current_token.kind = {Kind::tk_id};
-        //   return current_token;
-        // } else {
-        //   // TODO: literal, ==, &&, ||
-        //   // 1 char ascii symbol
-        //   return current_token = {(Kind)ch};
-        // }
         // unexpected
         m_token_vec.push_back({Kind::end});
         return;

@@ -8,6 +8,7 @@ enum class NodeKind {
   nd_mul,
   nd_div,
   nd_num,
+  nd_return,
   nd_assign,
   nd_eq,
   nd_neq,
