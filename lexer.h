@@ -1,4 +1,7 @@
+#pragma once
 #include <iostream>
+#include <memory>
+#include <vector>
 
 namespace Lexer {
 
@@ -20,30 +23,43 @@ enum class Kind : int {
   kw_while,
   kw_return,
   // op
-  op_eq,   // ==
-  op_and,  // &&
-  op_or,   // ||
+  op_eq,    // ==
+  op_neq,   // !=
+  op_le,    // <
+  op_leq,   // <=
+  op_gr,    // >
+  op_greq,  // >=
+  // op_and,   // &&
+  // op_or,    // ||
 };
 
 struct Token {
   Kind kind;
-  std::string string_value;
-  int number_value;
+  char *lexeme_string;
+  int len;
+  int lexeme_number;
 };
 
 class TokenStream {
  public:
-  TokenStream(std::istream &s);
+  TokenStream(char *program);
   ~TokenStream() = default;
 
-  const Token &current();
   bool consume(Kind kind);
+  bool consume(char kind);
+  Token consume_ident();
+  void expect(char op);
   int expect_number();
+  bool at_eof();
+
+  void debug_current();
 
  private:
-  std::istream &is;
-  Token current_token{Kind::end};
+  char *m_program;
+  std::vector<Token> m_token_vec;
+  int m_current_token_idx;
 
-  Token get();
+  void tokenize();
+  const Token &current();
 };
 }  // namespace Lexer
