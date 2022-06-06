@@ -1,9 +1,6 @@
 #include "ast.h"
 
-#include <initializer_list>
 #include <iostream>
-#include <memory>
-#include <utility>
 
 #include "enum_magic.hpp"
 
