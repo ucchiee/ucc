@@ -41,14 +41,16 @@ Lexer::Token Lexer::TokenStream::consume_ident() {
 
 void Lexer::TokenStream::expect(char op) {
   if (current().kind != Lexer::Kind(op)) {
-    exit(-1);
+    stringstream ss;
+    ss << op << "is expected" << endl;
+    error(ss.str());
   }
   m_current_token_idx++;
 }
 
 int Lexer::TokenStream::expect_number() {
   if (current().kind != Lexer::Kind::tk_int) {
-    exit(-1);
+    error("number is expected");
   }
   int val = current().lexeme_number;
   m_current_token_idx++;
@@ -161,6 +163,10 @@ void Lexer::TokenStream::tokenize() {
           // Check whether this is reserved.
           if (len == 6 && std::memcmp(tmp, "return", 6) == 0) {
             token = {Kind::kw_return, tmp, len};
+          } else if (len == 2 && std::memcmp(tmp, "if", 2) == 0) {
+            token = {Kind::kw_if, tmp, len};
+          } else if (len == 4 && std::memcmp(tmp, "else", 4) == 0) {
+            token = {Kind::kw_else, tmp, len};
           } else {
             token = {Kind::tk_id, tmp, len};
           }
@@ -176,4 +182,16 @@ void Lexer::TokenStream::tokenize() {
 
 const Lexer::Token& Lexer::TokenStream::current() {
   return m_token_vec.at(m_current_token_idx);
+}
+
+void Lexer::TokenStream::error(string msg) {
+  // determine num of spaces
+  int loc = current().lexeme_string - m_program;
+  string space = "";
+  for (int i = 0; i < loc; i++) space += " ";
+
+  // output error msg
+  cerr << m_program << endl;
+  cerr << space << "^ " << msg << endl;
+  exit(1);
 }
