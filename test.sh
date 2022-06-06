@@ -36,6 +36,6 @@ assert 13 'a = 4;b = 5 * 6 - 8;(a + b) / 2;'
 assert 13 'foo = 4;bar = 5 * 6 - 8;(foo + bar) / 2;'
 assert 5 'foo = 1;bar = 4; return foo+bar;'
 assert 4 'foo = 1; if (foo==1) return 4; return 3;'
-assert 4 'foo = 1; if (foo==1) return 4; else return 3;'
+assert 3 'foo = 1; if (foo==0) return 4; else return 3;'
 
 echo OK
