@@ -2,15 +2,17 @@
 
 #include <iostream>
 #include <memory>
+#include <sstream>
 
 #include "ast.h"
 
 using namespace std;
 
 void codegen::gen(unique_ptr<Ast::Node> node) {
+  string label1, label2;
   switch (node->kind) {
     case Ast::NodeKind::nd_return:
-      gen(move(node->left));
+      gen(move(node->child_vec.at(0)));
       cout << "  pop rax" << endl;
       cout << "  mov rsp, rbp" << endl;
       cout << "  pop rbp" << endl;
@@ -27,20 +29,49 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       cout << "  push rax" << endl;
       return;
     case Ast::NodeKind::nd_assign:
-      gen_lval(move(node->left));
-      gen(move(node->right));
+      gen_lval(move(node->child_vec.at(0)));
+      gen(move(node->child_vec.at(1)));
 
       cout << "  pop rdi" << endl;
       cout << "  pop rax" << endl;  // addr of lval
       cout << "  mov [rax], rdi" << endl;
       cout << "  push rdi" << endl;
       return;
+    case Ast::NodeKind::nd_if:
+      label1 = codegen::create_label("ifend");
+      // expr
+      gen(move(node->child_vec.at(0)));
+
+      cout << "  pop rax" << endl;
+      cout << "  cmp rax, 0" << endl;
+      cout << "  je " << label1 << endl;
+      // then
+      gen(move(node->child_vec.at(1)));
+      cout << label1 << ":" << endl;
+      return;
+    case Ast::NodeKind::nd_ifelse:
+      label1 = codegen::create_label("ifend");
+      label2 = codegen::create_label("elseend");
+      // expr
+      gen(move(node->child_vec.at(0)));
+
+      cout << "  pop rax" << endl;
+      cout << "  cmp rax, 0" << endl;
+      cout << "  je " << label1 << endl;
+      // then
+      gen(move(node->child_vec.at(1)));
+      cout << "  jmp " << label2 << endl;
+      cout << label1 << ":" << endl;
+      // else
+      gen(move(node->child_vec.at(2)));
+      cout << label2 << ":" << endl;
+      return;
     default:
       break;
   }
 
-  gen(move(node->left));
-  gen(move(node->right));
+  gen(move(node->child_vec.at(0)));
+  gen(move(node->child_vec.at(1)));
 
   cout << "  pop rdi" << endl;
   cout << "  pop rax" << endl;
@@ -80,6 +111,7 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       cout << "  movzb rax, al" << endl;
       break;
     default:
+      cerr << "unexpected NnodeKind" << endl;
       exit(-1);
   }
 
@@ -89,9 +121,17 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
 void codegen::gen_lval(unique_ptr<Ast::Node> node) {
   // push addr of lval (i.e. rbp - 8)
   if (node->kind != Ast::NodeKind::nd_lval) {
+    cerr << "nd_lval node is expected, but not" << endl;
     exit(-1);
   }
   cout << "  mov rax, rbp" << endl;
   cout << "  sub rax, " << node->offset << endl;
   cout << "  push rax" << endl;
+}
+
+string codegen::create_label(string name) {
+  static int num = 0;
+  stringstream ss;
+  ss << codegen::label_prefix << "." << name << "." << num++;
+  return ss.str();
 }

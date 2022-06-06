@@ -25,11 +25,25 @@ void parser::Parser::program() {
 unique_ptr<Node> parser::Parser::stmt() {
   unique_ptr<Node> node;
   if (m_ts.consume(Lexer::Kind::kw_return)) {
-    node = create_node(NodeKind::nd_return, expr(), nullptr);
+    node = create_node(NodeKind::nd_return, expr());
+    m_ts.expect(';');
+
+  } else if (m_ts.consume(Lexer::Kind::kw_if)) {
+    // if
+    m_ts.expect('(');
+    node = create_node(NodeKind::nd_if, expr());
+    m_ts.expect(')');
+    node->add_child(stmt());
+    // else
+    if (m_ts.consume(Lexer::Kind::kw_else)) {
+      // change node kind
+      node->kind = NodeKind::nd_ifelse;
+      node->add_child(stmt());
+    }
   } else {
     node = expr();
+    m_ts.expect(';');
   }
-  m_ts.expect(';');  // TODO: error handling
   return node;
 }
 

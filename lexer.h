@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace Lexer {
@@ -61,5 +62,6 @@ class TokenStream {
 
   void tokenize();
   const Token &current();
+  void error(std::string msg);
 };
 }  // namespace Lexer
