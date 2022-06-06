@@ -2,7 +2,6 @@
 
 #include <cstring>
 #include <memory>
-#include <sstream>
 #include <vector>
 
 #include "ast.h"
