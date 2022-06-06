@@ -9,7 +9,7 @@
 using namespace std;
 
 void codegen::gen(unique_ptr<Ast::Node> node) {
-  string label;
+  string label1, label2;
   switch (node->kind) {
     case Ast::NodeKind::nd_return:
       gen(move(node->child_vec.at(0)));
@@ -38,14 +38,33 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       cout << "  push rdi" << endl;
       return;
     case Ast::NodeKind::nd_if:
+      label1 = codegen::create_label("ifend");
+      // expr
       gen(move(node->child_vec.at(0)));
-      label = codegen::create_label("ifend");
 
       cout << "  pop rax" << endl;
       cout << "  cmp rax, 0" << endl;
-      cout << "  je " << label << endl;
+      cout << "  je " << label1 << endl;
+      // then
       gen(move(node->child_vec.at(1)));
-      cout << label << ":" << endl;
+      cout << label1 << ":" << endl;
+      return;
+    case Ast::NodeKind::nd_ifelse:
+      label1 = codegen::create_label("ifend");
+      label2 = codegen::create_label("elseend");
+      // expr
+      gen(move(node->child_vec.at(0)));
+
+      cout << "  pop rax" << endl;
+      cout << "  cmp rax, 0" << endl;
+      cout << "  je " << label1 << endl;
+      // then
+      gen(move(node->child_vec.at(1)));
+      cout << "  jmp " << label2 << endl;
+      cout << label1 << ":" << endl;
+      // else
+      gen(move(node->child_vec.at(2)));
+      cout << label2 << ":" << endl;
       return;
     default:
       break;
