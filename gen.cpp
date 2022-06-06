@@ -46,6 +46,7 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       cout << "  je " << label << endl;
       gen(move(node->child_vec.at(1)));
       cout << label << ":" << endl;
+      return;
     default:
       break;
   }
