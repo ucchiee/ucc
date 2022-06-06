@@ -23,7 +23,7 @@ enum class NodeKind {
 struct Node {
   NodeKind kind;
   std::vector<std::unique_ptr<Node>> child_vec;
-  int val;  // used by nd_num, or label number
+  int val;
   int offset;
 
   void add_child(std::unique_ptr<Node> node);
