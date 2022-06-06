@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
   // code genertor for each node
   // wanna use auto for
   for (int i = 0; i < node_vec.size(); i++) {
+    // Ast::dump_ast(move(node_vec.at(i)), 0);
     codegen::gen(move(node_vec.at(i)));
 
     cout << "  pop rax" << endl;

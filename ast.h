@@ -37,4 +37,6 @@ std::unique_ptr<Ast::Node> create_node(
     std::unique_ptr<Ast::Node> second = nullptr);
 std::unique_ptr<Node> create_num(int num);
 
+void dump_ast(std::unique_ptr<Ast::Node> node, int depth);
+
 }  // namespace Ast

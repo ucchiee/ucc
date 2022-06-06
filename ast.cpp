@@ -1,8 +1,11 @@
 #include "ast.h"
 
 #include <initializer_list>
+#include <iostream>
 #include <memory>
 #include <utility>
+
+#include "enum_magic.hpp"
 
 using namespace std;
 
@@ -25,4 +28,14 @@ unique_ptr<Ast::Node> Ast::create_num(int val) {
 
   node->val = val;
   return move(node);
+}
+
+void Ast::dump_ast(std::unique_ptr<Ast::Node> node, int depth) {
+  string space;
+  for (int i = 0; i < depth; i++) space += " ";
+  cerr << space << magic_enum::enum_name(node->kind) << endl;
+
+  for (auto &&child : node->child_vec) {
+    Ast::dump_ast(move(child), depth + 1);
+  }
 }
