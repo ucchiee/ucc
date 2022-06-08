@@ -13,6 +13,7 @@ enum class NodeKind {
   nd_assign,
   nd_if,
   nd_ifelse,
+  nd_while,
   nd_eq,
   nd_neq,
   nd_le,
