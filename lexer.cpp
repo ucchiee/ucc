@@ -169,6 +169,8 @@ void Lexer::TokenStream::tokenize() {
             token = {Kind::kw_else, tmp, len};
           } else if (len == 5 && std::memcmp(tmp, "while", 5) == 0) {
             token = {Kind::kw_while, tmp, len};
+          } else if (len == 3 && std::memcmp(tmp, "for", 3) == 0) {
+            token = {Kind::kw_for, tmp, len};
           } else {
             token = {Kind::tk_id, tmp, len};
           }

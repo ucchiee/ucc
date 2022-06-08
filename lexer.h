@@ -20,7 +20,7 @@ enum class Kind : int {
   kw_void,
   kw_if,
   kw_else,
-  // kw_for,  // use while for a while
+  kw_for,
   kw_while,
   kw_return,
   // op

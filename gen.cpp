@@ -10,6 +10,7 @@ using namespace std;
 
 void codegen::gen(unique_ptr<Ast::Node> node) {
   string label1, label2;
+  bool have_expr;
   switch (node->kind) {
     case Ast::NodeKind::nd_return:
       gen(move(node->child_vec.at(0)));
@@ -82,6 +83,34 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       cout << "  jmp " << label1 << endl;
       // end
       cout << label2 << ":" << endl;
+      return;
+    case Ast::NodeKind::nd_for:
+      // for (0; 1; 2) 3
+      label1 = codegen::create_label("forStart");
+      label2 = codegen::create_label("forEnd");
+      // initialize
+      gen(move(node->child_vec.at(0)));
+      // start
+      cout << label1 << ":" << endl;
+      // expr
+      have_expr = node->child_vec.at(1)->kind != Ast::NodeKind::nd_blank;
+      if (have_expr) {
+        gen(move(node->child_vec.at(1)));
+        cout << "  pop rax" << endl;
+        cout << "  cmp rax, 0" << endl;
+        cout << "  je " << label2 << endl;
+      }
+      // body
+      gen(move(node->child_vec.at(2)));
+      // update
+      gen(move(node->child_vec.at(3)));
+      cout << "  jmp " << label1 << endl;
+      // end
+      if (have_expr) {
+        cout << label2 << ":" << endl;
+      }
+      return;
+    case Ast::NodeKind::nd_blank:
       return;
     default:
       break;

@@ -47,6 +47,28 @@ unique_ptr<Node> parser::Parser::stmt() {
     node = create_node(NodeKind::nd_while, expr());
     m_ts.expect(')');
     node->add_child(stmt());
+
+  } else if (m_ts.consume(Lexer::Kind::kw_for)) {
+    // ( expr? ; expr? ; expr? ) stmt
+    node = create_node(NodeKind::nd_for);
+    m_ts.expect('(');
+    // first and second expr
+    for (int i = 0; i < 2; i++) {
+      if (m_ts.consume(';')) {
+        node->add_child(create_node(Ast::NodeKind::nd_blank));
+      } else {
+        node->add_child(expr());
+        m_ts.expect(';');
+      }
+    }
+    // third expr
+    if (m_ts.consume(')')) {
+      node->add_child(create_node(Ast::NodeKind::nd_blank));
+    } else {
+      node->add_child(expr());
+      m_ts.expect(')');
+    }
+    node->add_child(stmt());
   } else {
     node = expr();
     m_ts.expect(';');
