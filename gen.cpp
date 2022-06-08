@@ -124,8 +124,7 @@ void codegen::gen_lval(unique_ptr<Ast::Node> node) {
     cerr << "nd_lval node is expected, but not" << endl;
     exit(-1);
   }
-  cout << "  mov rax, rbp" << endl;
-  cout << "  sub rax, " << node->offset << endl;
+  cout << "  lea rax, [rbp - " << node->offset << "]" << endl;
   cout << "  push rax" << endl;
 }
 
