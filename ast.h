@@ -18,9 +18,9 @@ enum class NodeKind {
   nd_for,
   nd_compound,
   nd_eq,
-  nd_neq,
+  nd_ne,
+  nd_lt,
   nd_le,
-  nd_leq,
   nd_lval,
 };
 
