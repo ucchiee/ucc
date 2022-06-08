@@ -126,31 +126,31 @@ void Lexer::TokenStream::tokenize() {
         }
       case '!':
         if ((p + 1) && *(p + 1) == '=') {
-          token = {Kind::op_neq, p, 2};
+          token = {Kind::op_ne, p, 2};
           ++ ++p;
           m_token_vec.push_back(token);
           continue;
         }
       case '<':
         if ((p + 1) && *(p + 1) == '=') {  // <=
-          token = {Kind::op_leq, p, 2};
+          token = {Kind::op_le, p, 2};
           ++ ++p;
           m_token_vec.push_back(token);
           continue;
         } else {  // <
-          token = {Kind::op_le, p, 1};
+          token = {Kind::op_lt, p, 1};
           ++p;
           m_token_vec.push_back(token);
           continue;
         }
       case '>':
         if ((p + 1) && *(p + 1) == '=') {  // >=
-          token = {Kind::op_greq, p, 2};
+          token = {Kind::op_ge, p, 2};
           ++ ++p;
           m_token_vec.push_back(token);
           continue;
         } else {  // <
-          token = {Kind::op_gr, p, 1};
+          token = {Kind::op_gt, p, 1};
           ++p;
           m_token_vec.push_back(token);
           continue;
