@@ -38,5 +38,9 @@ assert 5 'foo = 1;bar = 4; return foo+bar;'
 assert 4 'foo = 1; if (foo==1) return 4; return 3;'
 assert 3 'foo = 1; if (foo==0) return 4; else return 3;'
 assert 5 'i = 1;while (i < 5) i = i + 1; return i;'
+assert 5 'foo = 0;for (i = 0; i < 5; i = i + 1) foo = foo + 1;return foo;'
+assert 5 'foo = 0;i = 0;for (; i < 5; i = i + 1) foo = foo + 1;return foo;'
+assert 5 'i=1;for(;i<5;)i=i+1;return i;'
+assert 5 'for(i=1;i<5;)i=i+1;return i;'
 
 echo OK
