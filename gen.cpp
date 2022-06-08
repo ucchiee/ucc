@@ -8,28 +8,28 @@
 
 using namespace std;
 
-void codegen::gen(unique_ptr<Ast::Node> node) {
+void codegen::gen(unique_ptr<ast::Node> node) {
   string label1, label2;
   bool have_expr;
   switch (node->kind) {
-    case Ast::NodeKind::nd_return:
+    case ast::NodeKind::nd_return:
       gen(move(node->child_vec.at(0)));
       cout << "  pop rax" << endl;
       cout << "  mov rsp, rbp" << endl;
       cout << "  pop rbp" << endl;
       cout << "  ret" << endl;
       return;
-    case Ast::NodeKind::nd_num:
+    case ast::NodeKind::nd_num:
       cout << "  push " << node->val << endl;
       return;
-    case Ast::NodeKind::nd_lval:
+    case ast::NodeKind::nd_lval:
       gen_lval(move(node));
       // addr of lval is on the stack top
       cout << "  pop rax" << endl;
       cout << "  mov rax, [rax]" << endl;
       cout << "  push rax" << endl;
       return;
-    case Ast::NodeKind::nd_assign:
+    case ast::NodeKind::nd_assign:
       gen_lval(move(node->child_vec.at(0)));
       gen(move(node->child_vec.at(1)));
 
@@ -38,7 +38,7 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       cout << "  mov [rax], rdi" << endl;
       cout << "  push rdi" << endl;
       return;
-    case Ast::NodeKind::nd_if:
+    case ast::NodeKind::nd_if:
       label1 = codegen::create_label("ifEnd");
       // expr
       gen(move(node->child_vec.at(0)));
@@ -50,7 +50,7 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       gen(move(node->child_vec.at(1)));
       cout << label1 << ":" << endl;
       return;
-    case Ast::NodeKind::nd_ifelse:
+    case ast::NodeKind::nd_ifelse:
       label1 = codegen::create_label("ifEnd");
       label2 = codegen::create_label("elseEnd");
       // expr
@@ -67,7 +67,7 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       gen(move(node->child_vec.at(2)));
       cout << label2 << ":" << endl;
       return;
-    case Ast::NodeKind::nd_while:
+    case ast::NodeKind::nd_while:
       label1 = codegen::create_label("whileStart");
       label2 = codegen::create_label("whileEnd");
       // start
@@ -84,7 +84,7 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       // end
       cout << label2 << ":" << endl;
       return;
-    case Ast::NodeKind::nd_for:
+    case ast::NodeKind::nd_for:
       // for (0; 1; 2) 3
       label1 = codegen::create_label("forStart");
       label2 = codegen::create_label("forEnd");
@@ -93,7 +93,7 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       // start
       cout << label1 << ":" << endl;
       // expr
-      have_expr = node->child_vec.at(1)->kind != Ast::NodeKind::nd_blank;
+      have_expr = node->child_vec.at(1)->kind != ast::NodeKind::nd_blank;
       if (have_expr) {
         gen(move(node->child_vec.at(1)));
         cout << "  pop rax" << endl;
@@ -110,9 +110,9 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
         cout << label2 << ":" << endl;
       }
       return;
-    case Ast::NodeKind::nd_blank:
+    case ast::NodeKind::nd_blank:
       return;
-    case Ast::NodeKind::nd_compound:
+    case ast::NodeKind::nd_compound:
       for (int i = 0; i < node->child_vec.size(); i ++) {
         gen(move(node->child_vec.at(i)));
       }
@@ -128,35 +128,35 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
   cout << "  pop rax" << endl;
 
   switch (node->kind) {
-    case Ast::NodeKind::nd_add:
+    case ast::NodeKind::nd_add:
       cout << "  add rax, rdi" << endl;
       break;
-    case Ast::NodeKind::nd_sub:
+    case ast::NodeKind::nd_sub:
       cout << "  sub rax, rdi" << endl;
       break;
-    case Ast::NodeKind::nd_mul:
+    case ast::NodeKind::nd_mul:
       cout << "  imul rax, rdi" << endl;
       break;
-    case Ast::NodeKind::nd_div:
+    case ast::NodeKind::nd_div:
       cout << "  cqo" << endl;
       cout << "  idiv rdi" << endl;
       break;
-    case Ast::NodeKind::nd_eq:
+    case ast::NodeKind::nd_eq:
       cout << "  cmp rax, rdi" << endl;
       cout << "  sete al" << endl;
       cout << "  movzb rax, al" << endl;
       break;
-    case Ast::NodeKind::nd_neq:
+    case ast::NodeKind::nd_neq:
       cout << "  cmp rax, rdi" << endl;
       cout << "  setne al" << endl;
       cout << "  movzb rax, al" << endl;
       break;
-    case Ast::NodeKind::nd_le:
+    case ast::NodeKind::nd_le:
       cout << "  cmp rax, rdi" << endl;
       cout << "  setl al" << endl;
       cout << "  movzb rax, al" << endl;
       break;
-    case Ast::NodeKind::nd_leq:
+    case ast::NodeKind::nd_leq:
       cout << "  cmp rax, rdi" << endl;
       cout << "  setle al" << endl;
       cout << "  movzb rax, al" << endl;
@@ -169,9 +169,9 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
   cout << "  push rax" << endl;
 }
 
-void codegen::gen_lval(unique_ptr<Ast::Node> node) {
+void codegen::gen_lval(unique_ptr<ast::Node> node) {
   // push addr of lval (i.e. rbp - 8)
-  if (node->kind != Ast::NodeKind::nd_lval) {
+  if (node->kind != ast::NodeKind::nd_lval) {
     cerr << "nd_lval node is expected, but not" << endl;
     exit(-1);
   }

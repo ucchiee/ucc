@@ -9,12 +9,12 @@
 #include "parser.h"
 
 using namespace std;
-using namespace Ast;
+using namespace ast;
 
 vector<unique_ptr<Node>> node_vec;
 vector<shared_ptr<parser::LVal>> lval_vec;
 
-parser::Parser::Parser(Lexer::TokenStream &ts) : m_ts{ts} {}
+parser::Parser::Parser(lexer::TokenStream &ts) : m_ts{ts} {}
 
 void parser::Parser::program() {
   while (!m_ts.at_eof()) {
@@ -24,38 +24,38 @@ void parser::Parser::program() {
 
 unique_ptr<Node> parser::Parser::stmt() {
   unique_ptr<Node> node;
-  if (m_ts.consume(Lexer::Kind::kw_return)) {
+  if (m_ts.consume(lexer::Kind::kw_return)) {
     node = create_node(NodeKind::nd_return, expr());
     m_ts.expect(';');
 
-  } else if (m_ts.consume(Lexer::Kind::kw_if)) {
+  } else if (m_ts.consume(lexer::Kind::kw_if)) {
     // if
     m_ts.expect('(');
     node = create_node(NodeKind::nd_if, expr());
     m_ts.expect(')');
     node->add_child(stmt());
     // else
-    if (m_ts.consume(Lexer::Kind::kw_else)) {
+    if (m_ts.consume(lexer::Kind::kw_else)) {
       // change node kind
       node->kind = NodeKind::nd_ifelse;
       node->add_child(stmt());
     }
 
-  } else if (m_ts.consume(Lexer::Kind::kw_while)) {
+  } else if (m_ts.consume(lexer::Kind::kw_while)) {
     // while
     m_ts.expect('(');
     node = create_node(NodeKind::nd_while, expr());
     m_ts.expect(')');
     node->add_child(stmt());
 
-  } else if (m_ts.consume(Lexer::Kind::kw_for)) {
+  } else if (m_ts.consume(lexer::Kind::kw_for)) {
     // ( expr? ; expr? ; expr? ) stmt
     node = create_node(NodeKind::nd_for);
     m_ts.expect('(');
     // first and second expr
     for (int i = 0; i < 2; i++) {
       if (m_ts.consume(';')) {
-        node->add_child(create_node(Ast::NodeKind::nd_blank));
+        node->add_child(create_node(ast::NodeKind::nd_blank));
       } else {
         node->add_child(expr());
         m_ts.expect(';');
@@ -63,7 +63,7 @@ unique_ptr<Node> parser::Parser::stmt() {
     }
     // third expr
     if (m_ts.consume(')')) {
-      node->add_child(create_node(Ast::NodeKind::nd_blank));
+      node->add_child(create_node(ast::NodeKind::nd_blank));
     } else {
       node->add_child(expr());
       m_ts.expect(')');
@@ -93,13 +93,13 @@ unique_ptr<Node> parser::Parser::assign() {
   }
 }
 
-unique_ptr<Ast::Node> parser::Parser::equality() {
+unique_ptr<ast::Node> parser::Parser::equality() {
   unique_ptr<Node> node = relational();
 
   for (;;) {
-    if (m_ts.consume(Lexer::Kind::op_eq)) {
+    if (m_ts.consume(lexer::Kind::op_eq)) {
       node = create_node(NodeKind::nd_eq, move(node), relational());
-    } else if (m_ts.consume(Lexer::Kind::op_ne)) {
+    } else if (m_ts.consume(lexer::Kind::op_ne)) {
       node = create_node(NodeKind::nd_neq, move(node), relational());
     } else {
       return move(node);
@@ -107,17 +107,17 @@ unique_ptr<Ast::Node> parser::Parser::equality() {
   }
 }
 
-unique_ptr<Ast::Node> parser::Parser::relational() {
+unique_ptr<ast::Node> parser::Parser::relational() {
   unique_ptr<Node> node = add();
 
   for (;;) {
-    if (m_ts.consume(Lexer::Kind::op_lt)) {
+    if (m_ts.consume(lexer::Kind::op_lt)) {
       node = create_node(NodeKind::nd_le, move(node), add());
-    } else if (m_ts.consume(Lexer::Kind::op_le)) {
+    } else if (m_ts.consume(lexer::Kind::op_le)) {
       node = create_node(NodeKind::nd_leq, move(node), add());
-    } else if (m_ts.consume(Lexer::Kind::op_gt)) {
+    } else if (m_ts.consume(lexer::Kind::op_gt)) {
       node = create_node(NodeKind::nd_le, add(), move(node));
-    } else if (m_ts.consume(Lexer::Kind::op_ge)) {
+    } else if (m_ts.consume(lexer::Kind::op_ge)) {
       node = create_node(NodeKind::nd_leq, add(), move(node));
     } else {
       return move(node);
@@ -169,8 +169,8 @@ unique_ptr<Node> parser::Parser::primary() {
     m_ts.expect(')');
     return node;
   }
-  Lexer::Token tok = m_ts.consume_ident();
-  if (tok.kind != Lexer::Kind::end) {
+  lexer::Token tok = m_ts.consume_ident();
+  if (tok.kind != lexer::Kind::end) {
     node = make_unique<Node>();
     node->kind = NodeKind::nd_lval;
     shared_ptr<LVal> lval = parser::find_lval(tok);
@@ -199,7 +199,7 @@ unique_ptr<Node> parser::Parser::primary() {
   return move(create_num(val));
 }
 
-shared_ptr<parser::LVal> parser::find_lval(Lexer::Token token) {
+shared_ptr<parser::LVal> parser::find_lval(lexer::Token token) {
   // ToDo: lval_vec should be map
   for (int i = 0; i < lval_vec.size(); i++) {
     if (token.len == lval_vec.at(i)->len &&

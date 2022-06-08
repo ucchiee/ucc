@@ -12,35 +12,35 @@ using namespace std;
 
 extern vector<shared_ptr<parser::LVal>> lval_vec;
 
-Lexer::TokenStream::TokenStream(char* program)
+lexer::TokenStream::TokenStream(char* program)
     : m_program{program}, m_current_token_idx{0} {
   tokenize();
 }
 
-bool Lexer::TokenStream::consume(Lexer::Kind kind) {
+bool lexer::TokenStream::consume(lexer::Kind kind) {
   if (current().kind != kind) {
     return false;
   }
   m_current_token_idx++;
   return true;
 }
-bool Lexer::TokenStream::consume(char kind) {
-  if (current().kind != Lexer::Kind(kind)) {
+bool lexer::TokenStream::consume(char kind) {
+  if (current().kind != lexer::Kind(kind)) {
     return false;
   }
   m_current_token_idx++;
   return true;
 }
 
-Lexer::Token Lexer::TokenStream::consume_ident() {
-  if (current().kind != Lexer::Kind::tk_id) {
-    return {Lexer::Kind::end};
+lexer::Token lexer::TokenStream::consume_ident() {
+  if (current().kind != lexer::Kind::tk_id) {
+    return {lexer::Kind::end};
   }
   return m_token_vec[m_current_token_idx++];
 }
 
-void Lexer::TokenStream::expect(char op) {
-  if (current().kind != Lexer::Kind(op)) {
+void lexer::TokenStream::expect(char op) {
+  if (current().kind != lexer::Kind(op)) {
     stringstream ss;
     ss << op << "is expected" << endl;
     error(ss.str());
@@ -48,8 +48,8 @@ void Lexer::TokenStream::expect(char op) {
   m_current_token_idx++;
 }
 
-int Lexer::TokenStream::expect_number() {
-  if (current().kind != Lexer::Kind::tk_int) {
+int lexer::TokenStream::expect_number() {
+  if (current().kind != lexer::Kind::tk_int) {
     error("number is expected");
   }
   int val = current().lexeme_number;
@@ -57,19 +57,19 @@ int Lexer::TokenStream::expect_number() {
   return val;
 }
 
-bool Lexer::TokenStream::at_eof() {
+bool lexer::TokenStream::at_eof() {
   // do not forget Kind::end
   return !(m_current_token_idx < m_token_vec.size() - 1);
 }
 
-void Lexer::TokenStream::debug_current() {
+void lexer::TokenStream::debug_current() {
   cout << "kind: " << int(current().kind) << endl;
   cout << "lexeme_string: " << current().lexeme_string << endl;
   cout << "len: " << current().len << endl;
   cout << "lexeme_number: " << current().lexeme_number << endl;
 }
 
-void Lexer::TokenStream::tokenize() {
+void lexer::TokenStream::tokenize() {
   char* p;
   Token token;
 
@@ -186,11 +186,11 @@ void Lexer::TokenStream::tokenize() {
   }
 }
 
-const Lexer::Token& Lexer::TokenStream::current() {
+const lexer::Token& lexer::TokenStream::current() {
   return m_token_vec.at(m_current_token_idx);
 }
 
-void Lexer::TokenStream::error(string msg) {
+void lexer::TokenStream::error(string msg) {
   // determine num of spaces
   int loc = current().lexeme_string - m_program;
   string space = "";
