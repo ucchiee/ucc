@@ -112,6 +112,11 @@ void codegen::gen(unique_ptr<Ast::Node> node) {
       return;
     case Ast::NodeKind::nd_blank:
       return;
+    case Ast::NodeKind::nd_compound:
+      for (int i = 0; i < node->child_vec.size(); i ++) {
+        gen(move(node->child_vec.at(i)));
+      }
+      return;
     default:
       break;
   }
