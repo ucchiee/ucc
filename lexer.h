@@ -24,14 +24,14 @@ enum class Kind : int {
   kw_while,
   kw_return,
   // op
-  op_eq,    // ==
-  op_neq,   // !=
-  op_le,    // <
-  op_leq,   // <=
-  op_gr,    // >
-  op_greq,  // >=
-  // op_and,   // &&
-  // op_or,    // ||
+  op_eq,  // ==
+  op_ne,  // !=
+  op_lt,  // <
+  op_le,  // <=
+  op_gt,  // >
+  op_ge,  // >=
+  // op_and,  // &&
+  // op_or,   // ||
 };
 
 struct Token {
