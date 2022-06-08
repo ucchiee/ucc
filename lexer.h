@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace Lexer {
+namespace lexer {
 
 enum class Kind : int {
   // アスキー文字はそのまま扱う
@@ -64,4 +64,4 @@ class TokenStream {
   const Token &current();
   void error(std::string msg);
 };
-}  // namespace Lexer
+}  // namespace lexer

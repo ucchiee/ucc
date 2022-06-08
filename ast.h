@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 
-namespace Ast {
+namespace ast {
 enum class NodeKind {
   nd_blank,
   nd_add,
@@ -33,11 +33,11 @@ struct Node {
   void add_child(std::unique_ptr<Node> node);
 };
 
-std::unique_ptr<Ast::Node> create_node(
-    Ast::NodeKind kind, std::unique_ptr<Ast::Node> first = nullptr,
-    std::unique_ptr<Ast::Node> second = nullptr);
+std::unique_ptr<ast::Node> create_node(
+    ast::NodeKind kind, std::unique_ptr<ast::Node> first = nullptr,
+    std::unique_ptr<ast::Node> second = nullptr);
 std::unique_ptr<Node> create_num(int num);
 
-void dump_ast(std::unique_ptr<Ast::Node> node, int depth);
+void dump_ast(std::unique_ptr<ast::Node> node, int depth);
 
-}  // namespace Ast
+}  // namespace ast

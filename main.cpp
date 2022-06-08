@@ -9,7 +9,7 @@
 #include "parser.h"
 using namespace std;
 
-extern vector<unique_ptr<Ast::Node>> node_vec;
+extern vector<unique_ptr<ast::Node>> node_vec;
 extern vector<shared_ptr<parser::LVal>> lval_vec;
 
 int main(int argc, char** argv) {
@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  Lexer::TokenStream ts{argv[1]};
+  lexer::TokenStream ts{argv[1]};
   parser::Parser parser{ts};
   parser.program();
 
@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
   // code genertor for each node
   // wanna use auto for
   for (int i = 0; i < node_vec.size(); i++) {
-    // Ast::dump_ast(move(node_vec.at(i)), 0);
+    // ast::dump_ast(move(node_vec.at(i)), 0);
     codegen::gen(move(node_vec.at(i)));
 
     cout << "  pop rax" << endl;

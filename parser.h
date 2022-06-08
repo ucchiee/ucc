@@ -16,7 +16,7 @@ struct LVal {
 
 class Parser {
  public:
-  Parser(Lexer::TokenStream &ts);
+  Parser(lexer::TokenStream &ts);
   Parser(Parser &&) = default;
   Parser(const Parser &) = default;
   Parser &operator=(Parser &&) = delete;
@@ -24,20 +24,20 @@ class Parser {
   ~Parser() = default;
 
   void program();
-  std::unique_ptr<Ast::Node> stmt();
-  std::unique_ptr<Ast::Node> expr();
-  std::unique_ptr<Ast::Node> assign();
-  std::unique_ptr<Ast::Node> equality();
-  std::unique_ptr<Ast::Node> relational();
-  std::unique_ptr<Ast::Node> add();
-  std::unique_ptr<Ast::Node> mul();
-  std::unique_ptr<Ast::Node> unary();
-  std::unique_ptr<Ast::Node> primary();
+  std::unique_ptr<ast::Node> stmt();
+  std::unique_ptr<ast::Node> expr();
+  std::unique_ptr<ast::Node> assign();
+  std::unique_ptr<ast::Node> equality();
+  std::unique_ptr<ast::Node> relational();
+  std::unique_ptr<ast::Node> add();
+  std::unique_ptr<ast::Node> mul();
+  std::unique_ptr<ast::Node> unary();
+  std::unique_ptr<ast::Node> primary();
 
  private:
-  Lexer::TokenStream &m_ts;
+  lexer::TokenStream &m_ts;
 };
 
-std::shared_ptr<parser::LVal> find_lval(Lexer::Token token);
+std::shared_ptr<parser::LVal> find_lval(lexer::Token token);
 
 }  // namespace parser
