@@ -146,17 +146,17 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       cout << "  sete al" << endl;
       cout << "  movzb rax, al" << endl;
       break;
-    case ast::NodeKind::nd_neq:
+    case ast::NodeKind::nd_ne:
       cout << "  cmp rax, rdi" << endl;
       cout << "  setne al" << endl;
       cout << "  movzb rax, al" << endl;
       break;
-    case ast::NodeKind::nd_le:
+    case ast::NodeKind::nd_lt:
       cout << "  cmp rax, rdi" << endl;
       cout << "  setl al" << endl;
       cout << "  movzb rax, al" << endl;
       break;
-    case ast::NodeKind::nd_leq:
+    case ast::NodeKind::nd_le:
       cout << "  cmp rax, rdi" << endl;
       cout << "  setle al" << endl;
       cout << "  movzb rax, al" << endl;

@@ -100,7 +100,7 @@ unique_ptr<ast::Node> parser::Parser::equality() {
     if (m_ts.consume(lexer::Kind::op_eq)) {
       node = create_node(NodeKind::nd_eq, move(node), relational());
     } else if (m_ts.consume(lexer::Kind::op_ne)) {
-      node = create_node(NodeKind::nd_neq, move(node), relational());
+      node = create_node(NodeKind::nd_ne, move(node), relational());
     } else {
       return move(node);
     }
@@ -112,13 +112,13 @@ unique_ptr<ast::Node> parser::Parser::relational() {
 
   for (;;) {
     if (m_ts.consume(lexer::Kind::op_lt)) {
-      node = create_node(NodeKind::nd_le, move(node), add());
+      node = create_node(NodeKind::nd_lt, move(node), add());
     } else if (m_ts.consume(lexer::Kind::op_le)) {
-      node = create_node(NodeKind::nd_leq, move(node), add());
+      node = create_node(NodeKind::nd_le, move(node), add());
     } else if (m_ts.consume(lexer::Kind::op_gt)) {
-      node = create_node(NodeKind::nd_le, add(), move(node));
+      node = create_node(NodeKind::nd_lt, add(), move(node));
     } else if (m_ts.consume(lexer::Kind::op_ge)) {
-      node = create_node(NodeKind::nd_leq, add(), move(node));
+      node = create_node(NodeKind::nd_le, add(), move(node));
     } else {
       return move(node);
     }
