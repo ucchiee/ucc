@@ -40,6 +40,13 @@ unique_ptr<Node> parser::Parser::stmt() {
       node->kind = NodeKind::nd_ifelse;
       node->add_child(stmt());
     }
+
+  } else if (m_ts.consume(Lexer::Kind::kw_while)) {
+    // while
+    m_ts.expect('(');
+    node = create_node(NodeKind::nd_while, expr());
+    m_ts.expect(')');
+    node->add_child(stmt());
   } else {
     node = expr();
     m_ts.expect(';');

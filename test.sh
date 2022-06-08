@@ -37,5 +37,6 @@ assert 13 'foo = 4;bar = 5 * 6 - 8;(foo + bar) / 2;'
 assert 5 'foo = 1;bar = 4; return foo+bar;'
 assert 4 'foo = 1; if (foo==1) return 4; return 3;'
 assert 3 'foo = 1; if (foo==0) return 4; else return 3;'
+assert 5 'i = 1;while (i < 5) i = i + 1; return i;'
 
 echo OK
