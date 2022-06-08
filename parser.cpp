@@ -69,6 +69,12 @@ unique_ptr<Node> parser::Parser::stmt() {
       m_ts.expect(')');
     }
     node->add_child(stmt());
+
+  } else if (m_ts.consume('{')) {
+    node = create_node(NodeKind::nd_compound);
+    while (!m_ts.consume('}')) {
+      node->add_child(stmt());
+    }
   } else {
     node = expr();
     m_ts.expect(';');

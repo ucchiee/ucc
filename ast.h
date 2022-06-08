@@ -16,6 +16,7 @@ enum class NodeKind {
   nd_ifelse,
   nd_while,
   nd_for,
+  nd_compound,
   nd_eq,
   nd_neq,
   nd_le,
