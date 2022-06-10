@@ -1,5 +1,7 @@
 # ucc
 
+Ucc is a (subset of) C compiler, now able to handle this grammer:
+
 ```
 program    = stmt*
 stmt       = expr ";"
