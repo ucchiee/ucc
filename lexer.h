@@ -30,6 +30,7 @@ enum class Kind : int {
   op_le,  // <=
   op_gt,  // >
   op_ge,  // >=
+  op_add_into,  // +=
   // op_and,  // &&
   // op_or,   // ||
 };

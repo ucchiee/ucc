@@ -88,6 +88,8 @@ unique_ptr<Node> parser::Parser::assign() {
   unique_ptr<Node> node = equality();
   if (m_ts.consume('=')) {
     return create_node(NodeKind::nd_assign, move(node), assign());
+  } else if (m_ts.consume(lexer::Kind::op_add_into)) {
+    return create_node(NodeKind::nd_add_into, move(node), assign());
   } else {
     return move(node);
   }

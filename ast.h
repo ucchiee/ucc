@@ -12,6 +12,7 @@ enum class NodeKind {
   nd_num,
   nd_return,
   nd_assign,
+  nd_add_into,
   nd_if,
   nd_ifelse,
   nd_while,

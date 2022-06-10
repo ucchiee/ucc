@@ -102,6 +102,12 @@ void lexer::TokenStream::tokenize() {
         m_token_vec.push_back(token);
         continue;
       case '+':
+        if ((p + 1) && *(p + 1) == '=') {
+          token = {Kind::op_add_into, p, 2};
+          ++ ++p;
+          m_token_vec.push_back(token);
+          continue;
+        }
       case '-':
       case '*':
       case '/':
