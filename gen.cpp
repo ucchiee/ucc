@@ -38,6 +38,15 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       cout << "  mov [rax], rdi" << endl;
       cout << "  push rdi" << endl;
       return;
+    case ast::NodeKind::nd_add_into:
+      gen_lval(move(node->child_vec.at(0)));
+      gen(move(node->child_vec.at(1)));
+
+      cout << "  pop rdi" << endl;
+      cout << "  pop rax" << endl;  // addr of lval
+      cout << "  add [rax], rdi" << endl;
+      cout << "  push [rax]" << endl;  // push final result
+      return;
     case ast::NodeKind::nd_if:
       label1 = codegen::create_label("ifEnd");
       // expr
@@ -113,7 +122,7 @@ void codegen::gen(unique_ptr<ast::Node> node) {
     case ast::NodeKind::nd_blank:
       return;
     case ast::NodeKind::nd_compound:
-      for (int i = 0; i < node->child_vec.size(); i ++) {
+      for (int i = 0; i < node->child_vec.size(); i++) {
         gen(move(node->child_vec.at(i)));
       }
       return;
