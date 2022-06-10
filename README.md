@@ -1,6 +1,6 @@
 # ucc
 
-Ucc is a (subset of) C compiler, now able to handle this grammer:
+Ucc is a (subset of) C compiler, now able to handle this grammar:
 
 ```
 program    = stmt*
