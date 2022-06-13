@@ -45,5 +45,6 @@ assert 5 'for(i=1;i<5;)i=i+1;return i;'
 assert 10 'foo=0;bar=0; for(i=0;i<5;i=i+1){foo = foo + 1;bar = bar + 1;} return foo + bar;'
 assert 5 'foo=0;for(i=0;i<5;i+=1)foo+=1; return foo;'
 assert 1 'i=0; if ((i+=1) == 1) return 1; else return 0;'
+assert 3 'a=0;b=&a;*b=3;return a;'
 
 echo OK
