@@ -18,5 +18,8 @@ add        = mul ("+" mul | "-" mul)*
 mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-")? primary
            | ("*" | "&")? unary
-primary    = num | ident | "(" expr ")"
+primary    = num
+           | ident
+           | "(" expr ")"
+           | ident ("(" ")")?  # function call
 ```
