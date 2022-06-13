@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "ast.h"
+#include "enum_magic.hpp"
 
 using namespace std;
 
@@ -28,6 +29,15 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       cout << "  pop rax" << endl;
       cout << "  mov rax, [rax]" << endl;
       cout << "  push rax" << endl;
+      return;
+    case ast::NodeKind::nd_deref:
+      gen(move(node->child_vec.at(0)));
+      cout << "  pop rax" << endl;  // addr of lval
+      cout << "  mov rax, [rax]" << endl;
+      cout << "  push rax" << endl;
+      return;
+    case ast::NodeKind::nd_addr:
+      gen_lval(move(node->child_vec.at(0)));
       return;
     case ast::NodeKind::nd_assign:
       gen_lval(move(node->child_vec.at(0)));
@@ -180,12 +190,20 @@ void codegen::gen(unique_ptr<ast::Node> node) {
 
 void codegen::gen_lval(unique_ptr<ast::Node> node) {
   // push addr of lval (i.e. rbp - 8)
-  if (node->kind != ast::NodeKind::nd_lval) {
-    cerr << "nd_lval node is expected, but not" << endl;
-    exit(-1);
+  switch (node->kind) {
+    case ast::NodeKind::nd_deref:
+      gen(move(node->child_vec.at(0)));
+      return;
+    case ast::NodeKind::nd_lval:
+      cout << "  lea rax, [rbp - " << node->offset << "]" << endl;
+      cout << "  push rax" << endl;
+      return;
+    default:
+      cerr << "nd_lval node or nd_deref are expected, but not" << endl;
+      cerr << "current node kind is:" << magic_enum::enum_name(node->kind)
+           << endl;
+      exit(-1);
   }
-  cout << "  lea rax, [rbp - " << node->offset << "]" << endl;
-  cout << "  push rax" << endl;
 }
 
 string codegen::create_label(string name) {

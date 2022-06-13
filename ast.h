@@ -9,6 +9,8 @@ enum class NodeKind {
   nd_sub,
   nd_mul,
   nd_div,
+  nd_deref,
+  nd_addr,
   nd_num,
   nd_return,
   nd_assign,
