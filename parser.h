@@ -38,6 +38,6 @@ class Parser {
   lexer::TokenStream &m_ts;
 };
 
-std::shared_ptr<parser::LVal> find_lval(lexer::Token token);
+std::shared_ptr<parser::LVal> find_lval(const lexer::Token &token);
 
 }  // namespace parser

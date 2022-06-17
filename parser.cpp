@@ -205,7 +205,7 @@ unique_ptr<Node> parser::Parser::primary() {
   return move(create_num(val));
 }
 
-shared_ptr<parser::LVal> parser::find_lval(lexer::Token token) {
+shared_ptr<parser::LVal> parser::find_lval(const lexer::Token& token) {
   // ToDo: lval_vec should be map
   for (int i = 0; i < lval_vec.size(); i++) {
     if (token.len == lval_vec.at(i)->len &&
