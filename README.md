@@ -19,7 +19,6 @@ mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-")? primary
            | ("*" | "&")? unary
 primary    = num
-           | ident
            | "(" expr ")"
            | ident ("(" ")")?  # function call
 ```
