@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <vector>
 
 #include "ast.h"
 #include "enum_magic.hpp"
@@ -12,6 +13,8 @@ using namespace std;
 void codegen::gen(unique_ptr<ast::Node> node) {
   string label1, label2, funcname;
   bool have_expr;
+  int num_args;
+  vector<string> arg_reg_vec{"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
   switch (node->kind) {
     case ast::NodeKind::nd_return:
       gen(move(node->child_vec.at(0)));
@@ -140,6 +143,14 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
       cout << "  lea rax, [rip + " << funcname << "]" << endl;
       cout << "  .p2align 4" << endl;
+      num_args = node->child_vec.size();
+      while(!node->child_vec.empty()) {
+        gen(move(node->child_vec.back()));
+        node->child_vec.pop_back();
+      }
+      for (int i = 0; i < num_args; i++) {
+        cout << "  pop " << arg_reg_vec.at(i) << endl;
+      }
       cout << "  call rax" << endl;
       cout << "  push rax" << endl;
       return;

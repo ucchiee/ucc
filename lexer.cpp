@@ -117,6 +117,7 @@ void lexer::TokenStream::tokenize() {
       case '{':
       case '}':
       case ';':
+      case ',':
         m_token_vec.push_back({Kind(*p), p, 1});
         ++p;
         continue;
