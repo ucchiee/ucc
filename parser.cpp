@@ -160,6 +160,10 @@ unique_ptr<Node> parser::Parser::unary() {
     return primary();
   } else if (m_ts.consume('-')) {
     return create_node(NodeKind::nd_sub, create_num(0), primary());
+  } else if (m_ts.consume('*')) {
+    return create_node(NodeKind::nd_deref, unary());
+  } else if (m_ts.consume('&')) {
+    return create_node(NodeKind::nd_addr, unary());
   }
   return primary();
 }

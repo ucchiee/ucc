@@ -111,6 +111,7 @@ void lexer::TokenStream::tokenize() {
       case '-':
       case '*':
       case '/':
+      case '&':
       case '(':
       case ')':
       case '{':
