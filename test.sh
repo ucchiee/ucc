@@ -55,7 +55,9 @@ assert 3 'a=0;b=&a;*b=3;return a;'
 assert 23 'return foo();' '#include <stdio.h>
 int foo() { printf("\n\nfunction call!!\n\n"); return 23;}'
 assert 3 'return foo(3);' 'int foo(int a) {return a;}'
+assert 3 'return foo(1+2);' 'int foo(int a) {return a;}'
 assert 23 'return foo(20, 3);' 'int foo(int a, int b) {return a + b;}'
 assert 123 'return foo(100, 20, 3);' 'int foo(int a, int b, int c) {return a + b + c;}'
+assert 123 'return foo(50+50, 20, 3);' 'int foo(int a, int b, int c) {return a + b + c;}'
 
 echo OK
