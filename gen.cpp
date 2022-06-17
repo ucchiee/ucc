@@ -10,7 +10,7 @@
 using namespace std;
 
 void codegen::gen(unique_ptr<ast::Node> node) {
-  string label1, label2;
+  string label1, label2, funcname;
   bool have_expr;
   switch (node->kind) {
     case ast::NodeKind::nd_return:
@@ -135,6 +135,12 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       for (int i = 0; i < node->child_vec.size(); i++) {
         gen(move(node->child_vec.at(i)));
       }
+      return;
+    case ast::NodeKind::nd_funcall:
+      funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+      cout << "  lea rax, [rip + " << funcname << "]" << endl;
+      cout << "  call rax" << endl;
+      cout << "  push rax" << endl;
       return;
     default:
       break;

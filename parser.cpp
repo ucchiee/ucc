@@ -14,7 +14,7 @@ using namespace ast;
 vector<unique_ptr<Node>> node_vec;
 vector<shared_ptr<parser::LVal>> lval_vec;
 
-parser::Parser::Parser(lexer::TokenStream &ts) : m_ts{ts} {}
+parser::Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
 
 void parser::Parser::program() {
   while (!m_ts.at_eof()) {
@@ -170,37 +170,48 @@ unique_ptr<Node> parser::Parser::unary() {
 
 unique_ptr<Node> parser::Parser::primary() {
   unique_ptr<Node> node;
+  // '(' expr ')'
   if (m_ts.consume('(')) {
     node = expr();
     m_ts.expect(')');
     return node;
   }
+  // ident ('(' ')')?
   lexer::Token tok = m_ts.consume_ident();
   if (tok.kind != lexer::Kind::end) {
-    node = make_unique<Node>();
-    node->kind = NodeKind::nd_lval;
-    shared_ptr<LVal> lval = parser::find_lval(tok);
-    if (lval) {
-      // This var have already appeared.
-      node->offset = lval->offset;
+    if (m_ts.consume('(')) {
+      // funcall, inden '(' ')'
+      node = ast::create_node(NodeKind::nd_funcall);
+      node->tok = tok;
+      m_ts.expect(')');
+      return node;
     } else {
-      // This var have not appeared.
-      unique_ptr<LVal> lval = make_unique<LVal>();
-      lval->name = tok.lexeme_string;
-      lval->len = tok.len;
-      if (lval_vec.size()) {
-        // There is more than one var
-        lval->offset = lval_vec.at(lval_vec.size() - 1)->offset + 8;
+      // ident
+      node = ast::create_node(NodeKind::nd_lval);
+      shared_ptr<LVal> lval = parser::find_lval(tok);
+      if (lval) {
+        // This var have already appeared.
+        node->offset = lval->offset;
       } else {
-        // There is more than one var
-        lval->offset = 8;
+        // This var have not appeared.
+        unique_ptr<LVal> lval = make_unique<LVal>();
+        lval->name = tok.lexeme_string;
+        lval->len = tok.len;
+        if (lval_vec.size()) {
+          // There is more than one var
+          lval->offset = lval_vec.at(lval_vec.size() - 1)->offset + 8;
+        } else {
+          // There is more than one var
+          lval->offset = 8;
+        }
+        node->offset = lval->offset;
+        lval_vec.push_back(move(lval));
       }
-      node->offset = lval->offset;
-      lval_vec.push_back(move(lval));
+      return node;
     }
-    return node;
   }
 
+  // num
   int val = m_ts.expect_number();
   return move(create_num(val));
 }
