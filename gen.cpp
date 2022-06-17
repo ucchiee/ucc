@@ -142,7 +142,6 @@ void codegen::gen(unique_ptr<ast::Node> node) {
     case ast::NodeKind::nd_funcall:
       funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
       cout << "  lea rax, [rip + " << funcname << "]" << endl;
-      cout << "  .p2align 4" << endl;
       num_args = node->child_vec.size();
       while(!node->child_vec.empty()) {
         gen(move(node->child_vec.back()));
@@ -151,6 +150,7 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       for (int i = 0; i < num_args; i++) {
         cout << "  pop " << arg_reg_vec.at(i) << endl;
       }
+      cout << "  .p2align 4" << endl;
       cout << "  call rax" << endl;
       cout << "  push rax" << endl;
       return;
