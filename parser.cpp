@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -183,7 +184,13 @@ unique_ptr<Node> parser::Parser::primary() {
       // funcall, inden '(' ')'
       node = ast::create_node(NodeKind::nd_funcall);
       node->tok = tok;
-      m_ts.expect(')');
+      while (!m_ts.consume(')')) {
+        node->add_child(move(expr()));
+        m_ts.consume(',');
+      }
+      if (node->child_vec.size() > 6) {
+        cerr << "Max num of arguments is 6" << endl;
+      }
       return node;
     } else {
       // ident

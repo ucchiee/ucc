@@ -20,5 +20,5 @@ unary      = ("+" | "-")? primary
            | ("*" | "&")? unary
 primary    = num
            | "(" expr ")"
-           | ident ("(" ")")?  # function call
+           | ident ("(" ( expr "," )* ")")?  # function call
 ```
