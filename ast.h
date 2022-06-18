@@ -2,6 +2,8 @@
 #include <memory>
 #include <vector>
 
+#include "lexer.h"
+
 namespace ast {
 enum class NodeKind {
   nd_blank,
@@ -20,6 +22,7 @@ enum class NodeKind {
   nd_while,
   nd_for,
   nd_compound,
+  nd_funcall,
   nd_eq,
   nd_ne,
   nd_lt,
@@ -31,7 +34,8 @@ struct Node {
   NodeKind kind;
   std::vector<std::unique_ptr<Node>> child_vec;
   int val;
-  int offset;
+  int offset;  // variable
+  lexer::Token tok;  // funcall
 
   void add_child(std::unique_ptr<Node> node);
 };

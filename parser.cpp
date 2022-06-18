@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -14,7 +15,7 @@ using namespace ast;
 vector<unique_ptr<Node>> node_vec;
 vector<shared_ptr<parser::LVal>> lval_vec;
 
-parser::Parser::Parser(lexer::TokenStream &ts) : m_ts{ts} {}
+parser::Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
 
 void parser::Parser::program() {
   while (!m_ts.at_eof()) {
@@ -170,42 +171,59 @@ unique_ptr<Node> parser::Parser::unary() {
 
 unique_ptr<Node> parser::Parser::primary() {
   unique_ptr<Node> node;
+  // '(' expr ')'
   if (m_ts.consume('(')) {
     node = expr();
     m_ts.expect(')');
     return node;
   }
+  // ident ('(' ')')?
   lexer::Token tok = m_ts.consume_ident();
   if (tok.kind != lexer::Kind::end) {
-    node = make_unique<Node>();
-    node->kind = NodeKind::nd_lval;
-    shared_ptr<LVal> lval = parser::find_lval(tok);
-    if (lval) {
-      // This var have already appeared.
-      node->offset = lval->offset;
-    } else {
-      // This var have not appeared.
-      unique_ptr<LVal> lval = make_unique<LVal>();
-      lval->name = tok.lexeme_string;
-      lval->len = tok.len;
-      if (lval_vec.size()) {
-        // There is more than one var
-        lval->offset = lval_vec.at(lval_vec.size() - 1)->offset + 8;
-      } else {
-        // There is more than one var
-        lval->offset = 8;
+    if (m_ts.consume('(')) {
+      // funcall, inden '(' ')'
+      node = ast::create_node(NodeKind::nd_funcall);
+      node->tok = tok;
+      while (!m_ts.consume(')')) {
+        node->add_child(move(expr()));
+        m_ts.consume(',');
       }
-      node->offset = lval->offset;
-      lval_vec.push_back(move(lval));
+      if (node->child_vec.size() > 6) {
+        cerr << "Max num of arguments is 6" << endl;
+      }
+      return node;
+    } else {
+      // ident
+      node = ast::create_node(NodeKind::nd_lval);
+      shared_ptr<LVal> lval = parser::find_lval(tok);
+      if (lval) {
+        // This var have already appeared.
+        node->offset = lval->offset;
+      } else {
+        // This var have not appeared.
+        unique_ptr<LVal> lval = make_unique<LVal>();
+        lval->name = tok.lexeme_string;
+        lval->len = tok.len;
+        if (lval_vec.size()) {
+          // There is more than one var
+          lval->offset = lval_vec.at(lval_vec.size() - 1)->offset + 8;
+        } else {
+          // There is more than one var
+          lval->offset = 8;
+        }
+        node->offset = lval->offset;
+        lval_vec.push_back(move(lval));
+      }
+      return node;
     }
-    return node;
   }
 
+  // num
   int val = m_ts.expect_number();
   return move(create_num(val));
 }
 
-shared_ptr<parser::LVal> parser::find_lval(lexer::Token token) {
+shared_ptr<parser::LVal> parser::find_lval(const lexer::Token& token) {
   // ToDo: lval_vec should be map
   for (int i = 0; i < lval_vec.size(); i++) {
     if (token.len == lval_vec.at(i)->len &&

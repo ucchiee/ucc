@@ -4,7 +4,13 @@ assert() {
   input="$2"
 
   ./build/ucc "$input" > tmp.s
-  cc -o tmp tmp.s
+  if [ "$#" = 3 ]; then
+    echo "$3" > tmp_lib.c
+    cc -c tmp_lib.c
+    cc -o tmp tmp.s tmp_lib.o
+  else
+    cc -o tmp tmp.s
+  fi
   ./tmp
   actual="$?"
 
@@ -46,5 +52,13 @@ assert 10 'foo=0;bar=0; for(i=0;i<5;i=i+1){foo = foo + 1;bar = bar + 1;} return 
 assert 5 'foo=0;for(i=0;i<5;i+=1)foo+=1; return foo;'
 assert 1 'i=0; if ((i+=1) == 1) return 1; else return 0;'
 assert 3 'a=0;b=&a;*b=3;return a;'
+assert 23 'return foo();' '#include <stdio.h>
+int foo() { printf("\n\nfunction call!!\n\n"); return 23;}'
+assert 3 'return foo(3);' 'int foo(int a) {return a;}'
+assert 23 'return foo(20, 3);' 'int foo(int a, int b) {return a + b;}'
+assert 123 'return foo(100, 20, 3);' 'int foo(int a, int b, int c) {return a + b + c;}'
+assert 3 'return foo(1+2);' 'int foo(int a) {return a;}'
+assert 123 'return foo(50+50, 20, 3);' 'int foo(int a, int b, int c) {return a + b + c;}'
+assert 123 'a=100;return foo(a, 20, 3);' 'int foo(int a, int b, int c) {return a + b + c;}'
 
 echo OK
