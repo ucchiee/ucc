@@ -140,12 +140,13 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       }
       return;
     case ast::NodeKind::nd_funcall:
-      // args
+      // evaluate args and push them into stack
       num_args = node->child_vec.size();
       while (!node->child_vec.empty()) {
         gen(move(node->child_vec.back()));
         node->child_vec.pop_back();
       }
+      // set args in the registers
       for (int i = 0; i < num_args; i++) {
         cout << "  pop " << arg_reg_vec.at(i) << endl;
       }
