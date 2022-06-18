@@ -13,7 +13,7 @@ using namespace std;
 void codegen::gen(unique_ptr<ast::Node> node) {
   string label1, label2, funcname;
   bool have_expr;
-  int num_args;
+  int num_args = 0;
   vector<string> arg_reg_vec{"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
   switch (node->kind) {
     case ast::NodeKind::nd_return:
@@ -140,17 +140,22 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       }
       return;
     case ast::NodeKind::nd_funcall:
-      funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
-      cout << "  lea rax, [rip + " << funcname << "]" << endl;
+      // args
       num_args = node->child_vec.size();
-      while(!node->child_vec.empty()) {
+      while (!node->child_vec.empty()) {
         gen(move(node->child_vec.back()));
         node->child_vec.pop_back();
       }
       for (int i = 0; i < num_args; i++) {
         cout << "  pop " << arg_reg_vec.at(i) << endl;
       }
-      cout << "  .p2align 4" << endl;
+      // 16-alignment of rsp
+      if (num_args % 2 != 0) {
+        cout << "  sub rsp, 8" << endl;
+      }
+      // function call
+      funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+      cout << "  lea rax, [rip + " << funcname << "]" << endl;
       cout << "  call rax" << endl;
       cout << "  push rax" << endl;
       return;
