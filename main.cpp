@@ -22,8 +22,6 @@ int main(int argc, char** argv) {
   parser.program();
 
   cout << ".intel_syntax noprefix" << endl;
-  cout << ".globl main" << endl;
-  cout << "main:" << endl;
 
   // code genertor for each node
   // wanna use auto for

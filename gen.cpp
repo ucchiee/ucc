@@ -163,12 +163,12 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       }
       // function call
       funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
-      cout << "  lea rax, [rip + " << funcname << "]" << endl;
-      cout << "  call rax" << endl;
+      cout << "  call " << funcname << endl;
       cout << "  push rax" << endl;
       return;
     case ast::NodeKind::nd_funcdef:
       funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+      cout << ".globl " << funcname << endl;
       cout << funcname << ":" << endl;
 
       // prologe
