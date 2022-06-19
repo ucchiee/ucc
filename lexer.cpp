@@ -6,11 +6,13 @@
 #include <iostream>
 #include <sstream>
 
+#include "enum_magic.hpp"
+#include "lval.h"
 #include "parser.h"
 
 using namespace std;
 
-extern vector<shared_ptr<parser::LVal>> lval_vec;
+extern vector<shared_ptr<symbol::LVal>> lval_vec;
 
 lexer::TokenStream::TokenStream(char* program)
     : m_program{program}, m_current_token_idx{0} {
@@ -57,16 +59,43 @@ int lexer::TokenStream::expect_number() {
   return val;
 }
 
+lexer::Token lexer::TokenStream::expect_ident() {
+  if (current().kind != lexer::Kind::tk_id) {
+    error("ident is expected");
+  }
+  return m_token_vec[m_current_token_idx++];
+}
+
+void lexer::TokenStream::push_back(char kind) {
+  m_current_token_idx--;
+  if (current().kind != lexer::Kind(kind)) {
+    error("failed to push_back");
+  }
+}
+
 bool lexer::TokenStream::at_eof() {
   // do not forget Kind::end
   return !(m_current_token_idx < m_token_vec.size() - 1);
 }
 
 void lexer::TokenStream::debug_current() {
-  cout << "kind: " << int(current().kind) << endl;
-  cout << "lexeme_string: " << current().lexeme_string << endl;
-  cout << "len: " << current().len << endl;
-  cout << "lexeme_number: " << current().lexeme_number << endl;
+  string str;
+  str = {current().lexeme_string, (unsigned long)current().len};
+  cerr << "kind: " << int(current().kind) << endl;
+  cerr << "tok: " << str << endl;
+  cerr << "lexeme_number: " << current().lexeme_number << endl;
+}
+
+void lexer::TokenStream::dump() {
+  int backup = m_current_token_idx;
+  string str;
+  m_current_token_idx = 0;
+  while (!at_eof()) {
+    str = {current().lexeme_string, (unsigned long)current().len};
+    cerr << str << endl;
+    m_current_token_idx++;
+  }
+  m_current_token_idx = backup;
 }
 
 void lexer::TokenStream::tokenize() {

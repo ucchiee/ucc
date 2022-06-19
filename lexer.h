@@ -52,9 +52,12 @@ class TokenStream {
   Token consume_ident();
   void expect(char op);
   int expect_number();
+  Token expect_ident();
+  void push_back(char kind);
   bool at_eof();
 
   void debug_current();
+  void dump();
 
  private:
   char *m_program;

@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "lexer.h"
+#include "lval.h"
 
 namespace ast {
 enum class NodeKind {
@@ -23,6 +24,8 @@ enum class NodeKind {
   nd_for,
   nd_compound,
   nd_funcall,
+  nd_funcdef,
+  nd_param_decl,
   nd_eq,
   nd_ne,
   nd_lt,
@@ -34,8 +37,10 @@ struct Node {
   NodeKind kind;
   std::vector<std::unique_ptr<Node>> child_vec;
   int val;
-  int offset;  // variable
-  lexer::Token tok;  // funcall
+  int offset;        // variable
+  lexer::Token tok;  // funcall, funcdef
+  int total_size;
+  std::vector<std::shared_ptr<symbol::LVal>> local;
 
   void add_child(std::unique_ptr<Node> node);
 };

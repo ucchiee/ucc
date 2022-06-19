@@ -10,7 +10,6 @@
 using namespace std;
 
 extern vector<unique_ptr<ast::Node>> node_vec;
-extern vector<shared_ptr<parser::LVal>> lval_vec;
 
 int main(int argc, char** argv) {
   if (argc != 2) {

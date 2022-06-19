@@ -7,25 +7,69 @@
 
 #include "ast.h"
 #include "lexer.h"
+#include "lval.h"
 #include "parser.h"
 
 using namespace std;
 using namespace ast;
 
 vector<unique_ptr<Node>> node_vec;
-vector<shared_ptr<parser::LVal>> lval_vec;
+extern vector<shared_ptr<symbol::LVal>> lval_vec;
 
 parser::Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
 
 void parser::Parser::program() {
   while (!m_ts.at_eof()) {
-    node_vec.push_back(move(stmt()));
+    node_vec.push_back(move(funcdef()));
   }
+}
+
+unique_ptr<Node> parser::Parser::funcdef() {
+  // ident "(" param_decl ("," param_decl)* ")" compound_stmt
+  unique_ptr<Node> node = create_node(NodeKind::nd_funcdef);
+  lexer::Token tok = m_ts.expect_ident();
+
+  auto lval_vec_bak = lval_vec;  // TODO: need to fix
+
+  m_ts.expect('(');
+  while (!m_ts.consume(')')) {
+    node->add_child(move(param_decl()));
+    m_ts.consume(',');
+  }
+  auto node_compound = compound_stmt();
+
+  node->total_size = lval_vec.size() * 8;
+
+  // assign lval_vec to that of compound_stmt
+  node_compound->local = lval_vec;
+  lval_vec = lval_vec_bak;  // TODO: need to fix
+
+  node->add_child(move(node_compound));
+
+  return node;
+}
+
+unique_ptr<Node> parser::Parser::param_decl() {
+  // ident
+  unique_ptr<Node> node = create_node(NodeKind::nd_param_decl);
+  lexer::Token tok = m_ts.expect_ident();
+
+  // register arg as a local value for now
+  // TODO:
+  // In the future, I need to fix this behavior.
+  shared_ptr<symbol::LVal> lval = symbol::find_lval(tok);
+  if (!lval) {
+    lval = symbol::register_lval(tok);
+  }
+  node->offset = lval->offset;
+  node->tok = tok;
+  return node;
 }
 
 unique_ptr<Node> parser::Parser::stmt() {
   unique_ptr<Node> node;
   if (m_ts.consume(lexer::Kind::kw_return)) {
+    // return
     node = create_node(NodeKind::nd_return, expr());
     m_ts.expect(';');
 
@@ -72,13 +116,24 @@ unique_ptr<Node> parser::Parser::stmt() {
     node->add_child(stmt());
 
   } else if (m_ts.consume('{')) {
-    node = create_node(NodeKind::nd_compound);
-    while (!m_ts.consume('}')) {
-      node->add_child(stmt());
-    }
+    m_ts.push_back('{');
+    auto lval_vec_bak = lval_vec;  // TODO: need to fix
+    node = compound_stmt();
+    node->local = lval_vec;
+    lval_vec = lval_vec_bak;  // TODO: need to fix
   } else {
     node = expr();
     m_ts.expect(';');
+  }
+  return node;
+}
+
+unique_ptr<Node> parser::Parser::compound_stmt() {
+  // compound
+  unique_ptr<Node> node = create_node(NodeKind::nd_compound);
+  m_ts.expect('{');
+  while (!m_ts.consume('}')) {
+    node->add_child(stmt());
   }
   return node;
 }
@@ -181,7 +236,7 @@ unique_ptr<Node> parser::Parser::primary() {
   lexer::Token tok = m_ts.consume_ident();
   if (tok.kind != lexer::Kind::end) {
     if (m_ts.consume('(')) {
-      // funcall, inden '(' ')'
+      // funcall, ident '(' ')'
       node = ast::create_node(NodeKind::nd_funcall);
       node->tok = tok;
       while (!m_ts.consume(')')) {
@@ -195,25 +250,11 @@ unique_ptr<Node> parser::Parser::primary() {
     } else {
       // ident
       node = ast::create_node(NodeKind::nd_lval);
-      shared_ptr<LVal> lval = parser::find_lval(tok);
-      if (lval) {
-        // This var have already appeared.
-        node->offset = lval->offset;
-      } else {
-        // This var have not appeared.
-        unique_ptr<LVal> lval = make_unique<LVal>();
-        lval->name = tok.lexeme_string;
-        lval->len = tok.len;
-        if (lval_vec.size()) {
-          // There is more than one var
-          lval->offset = lval_vec.at(lval_vec.size() - 1)->offset + 8;
-        } else {
-          // There is more than one var
-          lval->offset = 8;
-        }
-        node->offset = lval->offset;
-        lval_vec.push_back(move(lval));
+      shared_ptr<symbol::LVal> lval = symbol::find_lval(tok);
+      if (!lval) {
+        lval = symbol::register_lval(tok);
       }
+      node->offset = lval->offset;
       return node;
     }
   }
@@ -221,15 +262,4 @@ unique_ptr<Node> parser::Parser::primary() {
   // num
   int val = m_ts.expect_number();
   return move(create_num(val));
-}
-
-shared_ptr<parser::LVal> parser::find_lval(const lexer::Token& token) {
-  // ToDo: lval_vec should be map
-  for (int i = 0; i < lval_vec.size(); i++) {
-    if (token.len == lval_vec.at(i)->len &&
-        !memcmp(token.lexeme_string, lval_vec.at(i)->name, token.len)) {
-      return lval_vec.at(i);
-    }
-  }
-  return nullptr;
 }
