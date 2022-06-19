@@ -60,5 +60,7 @@ assert 123 'main() {return foo(100, 20, 3);}' 'int foo(int a, int b, int c) {ret
 assert 3 'main() {return foo(1+2);}' 'int foo(int a) {return a;}'
 assert 123 'main() {return foo(50+50, 20, 3);}' 'int foo(int a, int b, int c) {return a + b + c;}'
 assert 123 'main() {a=100;return foo(a, 20, 3);}' 'int foo(int a, int b, int c) {return a + b + c;}'
+assert 123 'foo(a) {return a;} main() {return foo(123);}'
+assert 123 'foo(a, b) {return a + b;} main() {return foo(100 + 23);}'
 
 echo OK
