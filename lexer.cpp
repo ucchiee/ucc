@@ -7,8 +7,8 @@
 #include <sstream>
 
 #include "enum_magic.hpp"
-#include "lval.h"
 #include "parser.h"
+#include "symtable.h"
 
 using namespace std;
 

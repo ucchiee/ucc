@@ -7,8 +7,8 @@
 
 #include "ast.h"
 #include "lexer.h"
-#include "lval.h"
 #include "parser.h"
+#include "symtable.h"
 
 using namespace std;
 using namespace ast;

@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "lexer.h"
-#include "lval.h"
+#include "symtable.h"
 
 namespace ast {
 enum class NodeKind {
