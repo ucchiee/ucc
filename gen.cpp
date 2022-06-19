@@ -26,6 +26,13 @@ void codegen::gen(unique_ptr<ast::Node> node) {
     case ast::NodeKind::nd_num:
       cout << "  push " << node->val << endl;
       return;
+    case ast::NodeKind::nd_param_decl:
+      gen_lval(move(node));
+      // addr of lval is on the stack top
+      cout << "  pop rax" << endl;
+      cout << "  mov rax, [rax]" << endl;
+      cout << "  push rax" << endl;
+      return;
     case ast::NodeKind::nd_lval:
       gen_lval(move(node));
       // addr of lval is on the stack top
