@@ -25,23 +25,12 @@ int main(int argc, char** argv) {
   cout << ".globl main" << endl;
   cout << "main:" << endl;
 
-  // prologe
-  cout << "  push rbp" << endl;
-  cout << "  mov rbp, rsp" << endl;
-  cout << "  sub rsp, 208" << endl;
-
   // code genertor for each node
   // wanna use auto for
   for (int i = 0; i < node_vec.size(); i++) {
     // ast::dump_ast(move(node_vec.at(i)), 0);
     codegen::gen(move(node_vec.at(i)));
-
-    cout << "  pop rax" << endl;
   }
 
-  // epiloge
-  cout << "  mov rsp, rbp" << endl;
-  cout << "  pop rbp" << endl;
-  cout << "  ret" << endl;
   return 0;
 }

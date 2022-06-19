@@ -167,6 +167,26 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       cout << "  call rax" << endl;
       cout << "  push rax" << endl;
       return;
+    case ast::NodeKind::nd_funcdef:
+      funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+      cout << funcname << ":" << endl;
+
+      // prologe
+      cout << "  push rbp" << endl;
+      cout << "  mov rbp, rsp" << endl;
+      cout << "  sub rsp, " << node->total_size << endl;
+
+      // code generation of function body
+      // last element is compound
+      // skips arguments for now
+      gen(move(node->child_vec.at(node->child_vec.size() - 1)));
+      cout << "  pop rax" << endl;
+
+      // epiloge
+      cout << "  mov rsp, rbp" << endl;
+      cout << "  pop rbp" << endl;
+      cout << "  ret" << endl;
+      return;
     default:
       break;
   }

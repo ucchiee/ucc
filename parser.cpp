@@ -28,6 +28,7 @@ unique_ptr<Node> parser::Parser::funcdef() {
   // ident "(" param_decl ("," param_decl)* ")" compound_stmt
   unique_ptr<Node> node = create_node(NodeKind::nd_funcdef);
   lexer::Token tok = m_ts.expect_ident();
+  node->tok = tok;
 
   auto lval_vec_bak = lval_vec;  // TODO: need to fix
 

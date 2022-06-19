@@ -30,6 +30,6 @@ shared_ptr<symbol::LVal> symbol::register_lval(const lexer::Token& token) {
     // This var is the first one
     lval->offset = 8;
   }
-  lval_vec.push_back(move(lval));
+  lval_vec.push_back(lval);
   return lval;
 }

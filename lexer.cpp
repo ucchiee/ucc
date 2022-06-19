@@ -12,8 +12,6 @@
 
 using namespace std;
 
-extern vector<shared_ptr<symbol::LVal>> lval_vec;
-
 lexer::TokenStream::TokenStream(char* program)
     : m_program{program}, m_current_token_idx{0} {
   tokenize();

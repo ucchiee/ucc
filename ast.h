@@ -39,7 +39,7 @@ struct Node {
   int val;
   int offset;        // variable
   lexer::Token tok;  // funcall, funcdef
-  int total_size;
+  int total_size;    // funcdef
   std::vector<std::shared_ptr<symbol::LVal>> local;
 
   void add_child(std::unique_ptr<Node> node);
