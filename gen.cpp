@@ -186,7 +186,7 @@ void codegen::gen(unique_ptr<ast::Node> node) {
 
       // code generation of function body
       // last element is compound, others are arguments
-      for (auto &&child : node->child_vec) {
+      for (auto&& child : node->child_vec) {
         gen(move(child));
       }
       cout << "  pop rax" << endl;

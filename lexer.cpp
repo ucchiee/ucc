@@ -6,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "enum_magic.hpp"
 #include "parser.h"
 #include "symtable.h"
 
