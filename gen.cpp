@@ -14,8 +14,14 @@ void codegen::gen(unique_ptr<ast::Node> node) {
   string label1, label2, funcname;
   bool have_expr;
   int num_args = 0;
+  int arg_idx;
   vector<string> arg_reg_vec{"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
   switch (node->kind) {
+    case ast::NodeKind::nd_program:
+      for (auto&& child : node->child_vec) {
+        gen(move(child));
+      }
+      return;
     case ast::NodeKind::nd_return:
       gen(move(node->child_vec.at(0)));
       cout << "  pop rax" << endl;
@@ -25,6 +31,13 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       return;
     case ast::NodeKind::nd_num:
       cout << "  push " << node->val << endl;
+      return;
+    case ast::NodeKind::nd_param_decl:
+      arg_idx = node->arg_idx;
+      gen_lval(move(node));
+      // addr of lval is on the stack top
+      cout << "  pop rax" << endl;
+      cout << "  mov [rax], " << arg_reg_vec.at(arg_idx) << endl;
       return;
     case ast::NodeKind::nd_lval:
       gen_lval(move(node));
@@ -156,9 +169,32 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       }
       // function call
       funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
-      cout << "  lea rax, [rip + " << funcname << "]" << endl;
-      cout << "  call rax" << endl;
+      cout << "  call " << funcname << endl;
       cout << "  push rax" << endl;
+      return;
+    case ast::NodeKind::nd_funcdef:
+      funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+      cout << ".globl " << funcname << endl;
+      cout << funcname << ":" << endl;
+
+      // prologe
+      cout << "  push rbp" << endl;
+      cout << "  mov rbp, rsp" << endl;
+      if (node->total_size > 0) {
+        cout << "  sub rsp, " << node->total_size << endl;
+      }
+
+      // code generation of function body
+      // last element is compound, others are arguments
+      for (auto&& child : node->child_vec) {
+        gen(move(child));
+      }
+      cout << "  pop rax" << endl;
+
+      // epiloge
+      cout << "  mov rsp, rbp" << endl;
+      cout << "  pop rbp" << endl;
+      cout << "  ret" << endl;
       return;
     default:
       break;
@@ -219,6 +255,7 @@ void codegen::gen_lval(unique_ptr<ast::Node> node) {
       gen(move(node->child_vec.at(0)));
       return;
     case ast::NodeKind::nd_lval:
+    case ast::NodeKind::nd_param_decl:
       cout << "  lea rax, [rbp - " << node->offset << "]" << endl;
       cout << "  push rax" << endl;
       return;

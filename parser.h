@@ -8,12 +8,6 @@
 
 namespace parser {
 
-struct LVal {
-  char *name;
-  int len;
-  int offset;
-};
-
 class Parser {
  public:
   Parser(lexer::TokenStream &ts);
@@ -23,8 +17,11 @@ class Parser {
   Parser &operator=(const Parser &) = delete;
   ~Parser() = default;
 
-  void program();
+  std::unique_ptr<ast::Node> program();
+  std::unique_ptr<ast::Node> funcdef();
+  std::unique_ptr<ast::Node> param_decl();
   std::unique_ptr<ast::Node> stmt();
+  std::unique_ptr<ast::Node> compound_stmt();
   std::unique_ptr<ast::Node> expr();
   std::unique_ptr<ast::Node> assign();
   std::unique_ptr<ast::Node> equality();
@@ -37,7 +34,5 @@ class Parser {
  private:
   lexer::TokenStream &m_ts;
 };
-
-std::shared_ptr<parser::LVal> find_lval(const lexer::Token &token);
 
 }  // namespace parser
