@@ -13,15 +13,16 @@
 using namespace std;
 using namespace ast;
 
-vector<unique_ptr<Node>> node_vec;
 extern vector<shared_ptr<symbol::LVal>> lval_vec;
 
 parser::Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
 
-void parser::Parser::program() {
+unique_ptr<Node> parser::Parser::program() {
+  auto node = create_node(NodeKind::nd_program);
   while (!m_ts.at_eof()) {
-    node_vec.push_back(move(funcdef()));
+    node->add_child(funcdef());
   }
+  return node;
 }
 
 unique_ptr<Node> parser::Parser::funcdef() {
@@ -31,10 +32,14 @@ unique_ptr<Node> parser::Parser::funcdef() {
   node->tok = tok;
 
   auto lval_vec_bak = lval_vec;  // TODO: need to fix
+  lval_vec = {};
 
   m_ts.expect('(');
+  int num_arg = 0;
   while (!m_ts.consume(')')) {
-    node->add_child(move(param_decl()));
+    auto arg_child = param_decl();
+    arg_child->arg_idx = num_arg++;
+    node->add_child(move(arg_child));
     m_ts.consume(',');
   }
   auto node_compound = compound_stmt();

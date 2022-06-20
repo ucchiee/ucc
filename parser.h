@@ -17,7 +17,7 @@ class Parser {
   Parser &operator=(const Parser &) = delete;
   ~Parser() = default;
 
-  void program();
+  std::unique_ptr<ast::Node> program();
   std::unique_ptr<ast::Node> funcdef();
   std::unique_ptr<ast::Node> param_decl();
   std::unique_ptr<ast::Node> stmt();

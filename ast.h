@@ -7,6 +7,7 @@
 
 namespace ast {
 enum class NodeKind {
+  nd_program,
   nd_blank,
   nd_add,
   nd_sub,
@@ -40,6 +41,7 @@ struct Node {
   int offset;        // variable
   lexer::Token tok;  // funcall, funcdef
   int total_size;    // funcdef
+  int arg_idx;
   std::vector<std::shared_ptr<symbol::LVal>> local;
 
   void add_child(std::unique_ptr<Node> node);
