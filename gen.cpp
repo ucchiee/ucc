@@ -11,11 +11,7 @@
 using namespace std;
 
 void codegen::gen(unique_ptr<ast::Node> node) {
-  string label1, label2, funcname;
-  bool have_expr;
-  int num_args = 0;
-  int arg_idx;
-  vector<string> arg_reg_vec{"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+  vector<string> arg_regs{"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
   switch (node->kind) {
     case ast::NodeKind::nd_program:
       for (auto&& child : node->child_vec) {
@@ -32,13 +28,14 @@ void codegen::gen(unique_ptr<ast::Node> node) {
     case ast::NodeKind::nd_num:
       cout << "  push " << node->val << endl;
       return;
-    case ast::NodeKind::nd_param_decl:
-      arg_idx = node->arg_idx;
+    case ast::NodeKind::nd_param_decl: {
+      int arg_idx = node->arg_idx;
       gen_lval(move(node));
       // addr of lval is on the stack top
       cout << "  pop rax" << endl;
-      cout << "  mov [rax], " << arg_reg_vec.at(arg_idx) << endl;
+      cout << "  mov [rax], " << arg_regs.at(arg_idx) << endl;
       return;
+    }
     case ast::NodeKind::nd_lval:
       gen_lval(move(node));
       // addr of lval is on the stack top
@@ -73,78 +70,82 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       cout << "  add [rax], rdi" << endl;
       cout << "  push [rax]" << endl;  // push final result
       return;
-    case ast::NodeKind::nd_if:
-      label1 = codegen::create_label("ifEnd");
+    case ast::NodeKind::nd_if: {
+      string if_end = codegen::create_label("ifEnd");
       // expr
       gen(move(node->child_vec.at(0)));
 
       cout << "  pop rax" << endl;
       cout << "  cmp rax, 0" << endl;
-      cout << "  je " << label1 << endl;
+      cout << "  je " << if_end << endl;
       // then
       gen(move(node->child_vec.at(1)));
-      cout << label1 << ":" << endl;
+      cout << if_end << ":" << endl;
       return;
-    case ast::NodeKind::nd_ifelse:
-      label1 = codegen::create_label("ifEnd");
-      label2 = codegen::create_label("elseEnd");
+    }
+    case ast::NodeKind::nd_ifelse: {
+      string if_end = codegen::create_label("ifEnd");
+      string else_end = codegen::create_label("elseEnd");
       // expr
       gen(move(node->child_vec.at(0)));
 
       cout << "  pop rax" << endl;
       cout << "  cmp rax, 0" << endl;
-      cout << "  je " << label1 << endl;
+      cout << "  je " << if_end << endl;
       // then
       gen(move(node->child_vec.at(1)));
-      cout << "  jmp " << label2 << endl;
-      cout << label1 << ":" << endl;
+      cout << "  jmp " << else_end << endl;
+      cout << if_end << ":" << endl;
       // else
       gen(move(node->child_vec.at(2)));
-      cout << label2 << ":" << endl;
+      cout << else_end << ":" << endl;
       return;
-    case ast::NodeKind::nd_while:
-      label1 = codegen::create_label("whileStart");
-      label2 = codegen::create_label("whileEnd");
+    }
+    case ast::NodeKind::nd_while: {
+      string while_start = codegen::create_label("whileStart");
+      string while_end = codegen::create_label("whileEnd");
       // start
-      cout << label1 << ":" << endl;
+      cout << while_start << ":" << endl;
       // expr
       gen(move(node->child_vec.at(0)));
 
       cout << "  pop rax" << endl;
       cout << "  cmp rax, 0" << endl;
-      cout << "  je " << label2 << endl;
+      cout << "  je " << while_end << endl;
       // body
       gen(move(node->child_vec.at(1)));
-      cout << "  jmp " << label1 << endl;
+      cout << "  jmp " << while_start << endl;
       // end
-      cout << label2 << ":" << endl;
+      cout << while_end << ":" << endl;
       return;
-    case ast::NodeKind::nd_for:
+    }
+    case ast::NodeKind::nd_for: {
       // for (0; 1; 2) 3
-      label1 = codegen::create_label("forStart");
-      label2 = codegen::create_label("forEnd");
+      string for_start = codegen::create_label("forStart");
+      string for_end = codegen::create_label("forEnd");
       // initialize
       gen(move(node->child_vec.at(0)));
       // start
-      cout << label1 << ":" << endl;
+      cout << for_start << ":" << endl;
       // expr
-      have_expr = node->child_vec.at(1)->kind != ast::NodeKind::nd_blank;
+      bool have_expr = node->child_vec.at(1)->kind != ast::NodeKind::nd_blank;
       if (have_expr) {
         gen(move(node->child_vec.at(1)));
         cout << "  pop rax" << endl;
         cout << "  cmp rax, 0" << endl;
-        cout << "  je " << label2 << endl;
+        cout << "  je " << for_end << endl;
       }
       // body
       gen(move(node->child_vec.at(2)));
       // update
       gen(move(node->child_vec.at(3)));
-      cout << "  jmp " << label1 << endl;
+      cout << "  jmp " << for_start << endl;
       // end
       if (have_expr) {
-        cout << label2 << ":" << endl;
+        cout << for_end << ":" << endl;
       }
       return;
+    }
     case ast::NodeKind::nd_blank:
       return;
     case ast::NodeKind::nd_compound:
@@ -152,28 +153,29 @@ void codegen::gen(unique_ptr<ast::Node> node) {
         gen(move(node->child_vec.at(i)));
       }
       return;
-    case ast::NodeKind::nd_funcall:
+    case ast::NodeKind::nd_funcall: {
       // evaluate args and push them into stack
-      num_args = node->child_vec.size();
+      int num_args = node->child_vec.size();
       while (!node->child_vec.empty()) {
         gen(move(node->child_vec.back()));
         node->child_vec.pop_back();
       }
       // set args in the registers
       for (int i = 0; i < num_args; i++) {
-        cout << "  pop " << arg_reg_vec.at(i) << endl;
+        cout << "  pop " << arg_regs.at(i) << endl;
       }
       // 16-alignment of rsp
       if (num_args % 2 != 0) {
         cout << "  sub rsp, 8" << endl;
       }
       // function call
-      funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+      string funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
       cout << "  call " << funcname << endl;
       cout << "  push rax" << endl;
       return;
-    case ast::NodeKind::nd_funcdef:
-      funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+    }
+    case ast::NodeKind::nd_funcdef: {
+      string funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
       cout << ".globl " << funcname << endl;
       cout << funcname << ":" << endl;
 
@@ -196,6 +198,7 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       cout << "  pop rbp" << endl;
       cout << "  ret" << endl;
       return;
+    }
     default:
       break;
   }
