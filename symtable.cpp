@@ -8,11 +8,11 @@ using namespace std;
 vector<shared_ptr<symbol::LVal>> lval_vec;
 
 shared_ptr<symbol::LVal> symbol::find_lval(const lexer::Token& token) {
-  // ToDo: lval_vec should be map
-  for (int i = 0; i < lval_vec.size(); i++) {
-    if (token.len == lval_vec.at(i)->len &&
-        !memcmp(token.lexeme_string, lval_vec.at(i)->name, token.len)) {
-      return lval_vec.at(i);
+  // TODO: should lval_vec be map
+  for (auto lval : lval_vec) {
+    if (token.len == lval->tok.len &&
+        !memcmp(token.lexeme_string, lval->tok.lexeme_string, token.len)) {
+      return lval;
     }
   }
   return nullptr;
@@ -21,8 +21,7 @@ shared_ptr<symbol::LVal> symbol::find_lval(const lexer::Token& token) {
 shared_ptr<symbol::LVal> symbol::register_lval(const lexer::Token& token) {
   // ToDo: lval_vec should be map
   auto lval = make_shared<LVal>();
-  lval->name = token.lexeme_string;
-  lval->len = token.len;
+  lval->tok = token;
   if (lval_vec.size()) {
     // There is more than one var
     lval->offset = lval_vec.at(lval_vec.size() - 1)->offset + 8;

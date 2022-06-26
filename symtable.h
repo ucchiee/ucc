@@ -6,8 +6,7 @@
 namespace symbol {
 
 struct LVal {
-  char *name;
-  int len;
+  lexer::Token tok;
   int offset;
 };
 
