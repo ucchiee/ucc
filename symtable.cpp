@@ -20,7 +20,7 @@ shared_ptr<symbol::LVal> symbol::find_lval(const lexer::Token& token) {
 
 shared_ptr<symbol::LVal> symbol::register_lval(const lexer::Token& token) {
   // ToDo: lval_vec should be map
-  shared_ptr<LVal> lval = make_shared<LVal>();
+  auto lval = make_shared<LVal>();
   lval->name = token.lexeme_string;
   lval->len = token.len;
   if (lval_vec.size()) {
