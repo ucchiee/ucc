@@ -14,10 +14,21 @@ shared_ptr<symbol::LVal> symbol::SymTable::find_lval(
   // TODO: should element of lval_table be map
   for (auto i = lval_table.size() - 1; i != -1; i--) {
     for (auto lval : lval_table.at(i)) {
-      if (token.len == lval->tok.len &&
+      if (token.len == lval->tok.len && token.type == lval->tok.type &&
           !memcmp(token.lexeme_string, lval->tok.lexeme_string, token.len)) {
         return lval;
       }
+    }
+  }
+  return nullptr;
+}
+
+shared_ptr<symbol::LVal> symbol::SymTable::find_lval_current_scope(
+    const lexer::Token& token) {
+  for (auto lval : current()) {
+    if (token.len == lval->tok.len && token.type == lval->tok.type &&
+        !memcmp(token.lexeme_string, lval->tok.lexeme_string, token.len)) {
+      return lval;
     }
   }
   return nullptr;
@@ -28,14 +39,7 @@ shared_ptr<symbol::LVal> symbol::SymTable::register_lval(
   // TODO: should element of lval_table be map
   auto lval = make_shared<LVal>();
   lval->tok = token;
-  size_t size = current().size();
-  if (size != 0) {
-    // There is more than one var
-    lval->offset = current().at(size - 1)->offset + 8;
-  } else {
-    // This var is the first one
-    lval->offset = 8;
-  }
+  lval->offset = get_last_offset() + 8;
   current().push_back(lval);
   return lval;
 }
@@ -54,3 +58,11 @@ void symbol::SymTable::begin_funcdef() {
 }
 
 void symbol::SymTable::end_funcdef() {}
+
+int symbol::SymTable::get_last_offset() {
+  for (auto iter = lval_table.rbegin(); iter != lval_table.rend(); iter++) {
+    if ((*iter).size() == 0) continue;
+    return (*iter).at((*iter).size() - 1)->offset;
+  }
+  return 0;
+}

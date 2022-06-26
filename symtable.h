@@ -21,6 +21,7 @@ class SymTable {
   ~SymTable();
 
   std::shared_ptr<symbol::LVal> find_lval(const lexer::Token &token);
+  std::shared_ptr<symbol::LVal> find_lval_current_scope(const lexer::Token &token);
   std::shared_ptr<symbol::LVal> register_lval(const lexer::Token &token);
   std::vector<std::shared_ptr<LVal>> &current();
   void begin_block();
@@ -30,6 +31,7 @@ class SymTable {
 
  private:
   std::vector<std::vector<std::shared_ptr<LVal>>> lval_table;
+  int get_last_offset();
 };
 
 }  // namespace symbol
