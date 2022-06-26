@@ -13,7 +13,7 @@
 using namespace std;
 using namespace ast;
 
-extern vector<shared_ptr<symbol::LVal>> lval_vec;
+symbol::SymTable symtable;
 
 parser::Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
 
@@ -31,8 +31,7 @@ unique_ptr<Node> parser::Parser::funcdef() {
   lexer::Token tok = m_ts.expect_ident();
   node->tok = tok;
 
-  auto lval_vec_bak = lval_vec;  // TODO: need to fix
-  lval_vec = {};
+  symtable.begin_funcdef();
 
   m_ts.expect('(');
   int num_arg = 0;
@@ -44,11 +43,11 @@ unique_ptr<Node> parser::Parser::funcdef() {
   }
   auto node_compound = compound_stmt();
 
-  node->total_size = lval_vec.size() * 8;
+  node->total_size = symtable.current().size() * 8;
 
   // assign lval_vec to that of compound_stmt
-  node_compound->local = lval_vec;
-  lval_vec = lval_vec_bak;  // TODO: need to fix
+  node_compound->local = symtable.current();
+  symtable.end_funcdef();
 
   node->add_child(move(node_compound));
 
@@ -63,9 +62,9 @@ unique_ptr<Node> parser::Parser::param_decl() {
   // register arg as a local value for now
   // TODO:
   // In the future, I need to fix this behavior.
-  auto lval = symbol::find_lval(tok);
+  auto lval = symtable.find_lval(tok);
   if (!lval) {
-    lval = symbol::register_lval(tok);
+    lval = symtable.register_lval(tok);
   }
   node->offset = lval->offset;
   node->tok = tok;
@@ -123,10 +122,13 @@ unique_ptr<Node> parser::Parser::stmt() {
 
   } else if (m_ts.consume('{')) {
     m_ts.push_back('{');
-    auto lval_vec_bak = lval_vec;  // TODO: need to fix
+
+    symtable.begin_block();
+
     node = compound_stmt();
-    node->local = lval_vec;
-    lval_vec = lval_vec_bak;  // TODO: need to fix
+    node->local = symtable.current();
+
+    symtable.end_block();
   } else {
     node = expr();
     m_ts.expect(';');
@@ -256,9 +258,9 @@ unique_ptr<Node> parser::Parser::primary() {
     } else {
       // ident
       node = ast::create_node(NodeKind::nd_lval);
-      auto lval = symbol::find_lval(tok);
+      auto lval = symtable.find_lval(tok);
       if (!lval) {
-        lval = symbol::register_lval(tok);
+        lval = symtable.register_lval(tok);
       }
       node->offset = lval->offset;
       return node;
