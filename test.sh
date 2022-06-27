@@ -63,6 +63,7 @@ assert 123 'main() {int a;a=100;return foo(a, 20, 3);}' 'int foo(int a, int b, i
 assert 123 'foo(int a) {return a;} main() {return foo(123);}'
 assert 123 'foo(int a, int b) {return a + b;} main() {return foo(100, 23);}'
 assert 5 'main() {int a; int b; a = 0; {int a;a = 10; b = a / 2;} return a + b;}'
+assert 15 'main() {int a; int b; a = 0; {int a;a = 10; b = a / 2; return a + b;} return a + b;}'
 assert 3 'main() {int a;int *b;a=0;b=&a;*b=3;return a;}'
 
 echo OK
