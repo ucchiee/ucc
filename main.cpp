@@ -11,7 +11,7 @@ using namespace std;
 
 int main(int argc, char** argv) {
   if (argc != 2) {
-    cerr << "invalid # of args" << endl;
+    cerr << "invalid # of args\n";
     return 1;
   }
 
@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
   parser::Parser parser{ts};
   auto root = parser.program();
 
-  cout << ".intel_syntax noprefix" << endl;
+  cout << ".intel_syntax noprefix\n";
 
   codegen::gen(move(root));
 

@@ -27,7 +27,7 @@ unique_ptr<Node> parser::Parser::program() {
 
 unique_ptr<Node> parser::Parser::funcdef() {
   // ident "(" param_decl ("," param_decl)* ")" compound_stmt
-  unique_ptr<Node> node = create_node(NodeKind::nd_funcdef);
+  auto node = create_node(NodeKind::nd_funcdef);
   lexer::Token tok = m_ts.expect_ident();
   node->tok = tok;
 
@@ -57,13 +57,13 @@ unique_ptr<Node> parser::Parser::funcdef() {
 
 unique_ptr<Node> parser::Parser::param_decl() {
   // ident
-  unique_ptr<Node> node = create_node(NodeKind::nd_param_decl);
+  auto node = create_node(NodeKind::nd_param_decl);
   lexer::Token tok = m_ts.expect_ident();
 
   // register arg as a local value for now
   // TODO:
   // In the future, I need to fix this behavior.
-  shared_ptr<symbol::LVal> lval = symbol::find_lval(tok);
+  auto lval = symbol::find_lval(tok);
   if (!lval) {
     lval = symbol::register_lval(tok);
   }
@@ -136,7 +136,7 @@ unique_ptr<Node> parser::Parser::stmt() {
 
 unique_ptr<Node> parser::Parser::compound_stmt() {
   // compound
-  unique_ptr<Node> node = create_node(NodeKind::nd_compound);
+  auto node = create_node(NodeKind::nd_compound);
   m_ts.expect('{');
   while (!m_ts.consume('}')) {
     node->add_child(stmt());
@@ -147,7 +147,7 @@ unique_ptr<Node> parser::Parser::compound_stmt() {
 unique_ptr<Node> parser::Parser::expr() { return assign(); }
 
 unique_ptr<Node> parser::Parser::assign() {
-  unique_ptr<Node> node = equality();
+  auto node = equality();
   if (m_ts.consume('=')) {
     return create_node(NodeKind::nd_assign, move(node), assign());
   } else if (m_ts.consume(lexer::Kind::op_add_into)) {
@@ -158,7 +158,7 @@ unique_ptr<Node> parser::Parser::assign() {
 }
 
 unique_ptr<ast::Node> parser::Parser::equality() {
-  unique_ptr<Node> node = relational();
+  auto node = relational();
 
   for (;;) {
     if (m_ts.consume(lexer::Kind::op_eq)) {
@@ -172,7 +172,7 @@ unique_ptr<ast::Node> parser::Parser::equality() {
 }
 
 unique_ptr<ast::Node> parser::Parser::relational() {
-  unique_ptr<Node> node = add();
+  auto node = add();
 
   for (;;) {
     if (m_ts.consume(lexer::Kind::op_lt)) {
@@ -190,7 +190,7 @@ unique_ptr<ast::Node> parser::Parser::relational() {
 }
 
 unique_ptr<Node> parser::Parser::add() {
-  unique_ptr<Node> node = mul();
+  auto node = mul();
 
   for (;;) {
     if (m_ts.consume('+')) {
@@ -204,7 +204,7 @@ unique_ptr<Node> parser::Parser::add() {
 }
 
 unique_ptr<Node> parser::Parser::mul() {
-  unique_ptr<Node> node = unary();
+  auto node = unary();
 
   for (;;) {
     if (m_ts.consume('*')) {
@@ -256,7 +256,7 @@ unique_ptr<Node> parser::Parser::primary() {
     } else {
       // ident
       node = ast::create_node(NodeKind::nd_lval);
-      shared_ptr<symbol::LVal> lval = symbol::find_lval(tok);
+      auto lval = symbol::find_lval(tok);
       if (!lval) {
         lval = symbol::register_lval(tok);
       }
