@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "type.h"
+
 namespace lexer {
 
 enum class Kind : int {
@@ -24,12 +26,12 @@ enum class Kind : int {
   kw_while,
   kw_return,
   // op
-  op_eq,  // ==
-  op_ne,  // !=
-  op_lt,  // <
-  op_le,  // <=
-  op_gt,  // >
-  op_ge,  // >=
+  op_eq,        // ==
+  op_ne,        // !=
+  op_lt,        // <
+  op_le,        // <=
+  op_gt,        // >
+  op_ge,        // >=
   op_add_into,  // +=
   // op_and,  // &&
   // op_or,   // ||
@@ -40,6 +42,7 @@ struct Token {
   char *lexeme_string;
   int len;
   int lexeme_number;
+  type::Type type;
 };
 
 class TokenStream {
@@ -58,6 +61,7 @@ class TokenStream {
 
   void debug_current();
   void dump();
+  void error(std::string msg);
 
  private:
   char *m_program;
@@ -66,6 +70,5 @@ class TokenStream {
 
   void tokenize();
   const Token &current();
-  void error(std::string msg);
 };
 }  // namespace lexer

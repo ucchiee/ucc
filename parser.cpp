@@ -9,6 +9,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "symtable.h"
+#include "type.h"
 
 using namespace std;
 using namespace ast;
@@ -57,15 +58,20 @@ unique_ptr<Node> parser::Parser::funcdef() {
 unique_ptr<Node> parser::Parser::param_decl() {
   // ident
   auto node = create_node(NodeKind::nd_param_decl);
+  if (!m_ts.consume(lexer::Kind::kw_int)) {
+    m_ts.error("keyword int is expected");
+  }
   lexer::Token tok = m_ts.expect_ident();
+  tok.type = type::Type::type_int;
 
   // register arg as a local value for now
   // TODO:
   // In the future, I need to fix this behavior.
   auto lval = symtable.find_lval(tok);
-  if (!lval) {
-    lval = symtable.register_lval(tok);
+  if (lval) {
+    m_ts.error("Redefinition of arguments");
   }
+  lval = symtable.register_lval(tok);
   node->offset = lval->offset;
   node->tok = tok;
   return node;
@@ -140,6 +146,16 @@ unique_ptr<Node> parser::Parser::compound_stmt() {
   // compound
   auto node = create_node(NodeKind::nd_compound);
   m_ts.expect('{');
+  while (m_ts.consume(lexer::Kind::kw_int)) {
+    lexer::Token tok = m_ts.expect_ident();
+    tok.type = type::Type::type_int;
+    auto lval = symtable.find_lval_current_scope(tok);
+    if (lval) {
+      m_ts.error("Redefinition of ident");
+    }
+    lval = symtable.register_lval(tok);
+    m_ts.expect(';');
+  }
   while (!m_ts.consume('}')) {
     node->add_child(stmt());
   }
@@ -260,7 +276,7 @@ unique_ptr<Node> parser::Parser::primary() {
       node = ast::create_node(NodeKind::nd_lval);
       auto lval = symtable.find_lval(tok);
       if (!lval) {
-        lval = symtable.register_lval(tok);
+        m_ts.error("Not defined ident");
       }
       node->offset = lval->offset;
       return node;
