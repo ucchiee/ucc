@@ -56,6 +56,7 @@ class TokenStream {
   void expect(char op);
   int expect_number();
   Token expect_ident();
+  void push_back(Kind kind);
   void push_back(char kind);
   bool at_eof();
 

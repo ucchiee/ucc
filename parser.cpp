@@ -26,6 +26,25 @@ unique_ptr<Node> parser::Parser::program() {
   return node;
 }
 
+unique_ptr<type::Type> parser::Parser::type_specifier() {
+  auto type = make_unique<type::Type>();
+  if (m_ts.consume(lexer::Kind::kw_int)) {
+    type->add_int();
+  } else {
+    m_ts.error("unknown type");
+  }
+  return type;
+}
+
+lexer::Token parser::Parser::declarator(std::unique_ptr<type::Type> type) {
+  while (m_ts.consume('*')) {
+    type->add_ptr();
+  }
+  lexer::Token tok = m_ts.expect_ident();
+  tok.type = *type;
+  return tok;
+}
+
 unique_ptr<Node> parser::Parser::funcdef() {
   // ident "(" param_decl ("," param_decl)* ")" compound_stmt
   auto node = create_node(NodeKind::nd_funcdef);
@@ -56,13 +75,9 @@ unique_ptr<Node> parser::Parser::funcdef() {
 }
 
 unique_ptr<Node> parser::Parser::param_decl() {
-  // ident
+  // type_specifier declarator
   auto node = create_node(NodeKind::nd_param_decl);
-  if (!m_ts.consume(lexer::Kind::kw_int)) {
-    m_ts.error("keyword int is expected");
-  }
-  lexer::Token tok = m_ts.expect_ident();
-  tok.type = type::Type::type_int;
+  lexer::Token tok = declarator(type_specifier());
 
   // register arg as a local value for now
   // TODO:
@@ -147,8 +162,8 @@ unique_ptr<Node> parser::Parser::compound_stmt() {
   auto node = create_node(NodeKind::nd_compound);
   m_ts.expect('{');
   while (m_ts.consume(lexer::Kind::kw_int)) {
-    lexer::Token tok = m_ts.expect_ident();
-    tok.type = type::Type::type_int;
+    m_ts.push_back(lexer::Kind::kw_int);
+    lexer::Token tok = declarator(type_specifier());
     auto lval = symtable.find_lval_current_scope(tok);
     if (lval) {
       m_ts.error("Redefinition of ident");
@@ -278,6 +293,7 @@ unique_ptr<Node> parser::Parser::primary() {
       if (!lval) {
         m_ts.error("Not defined ident");
       }
+      node->tok = lval->tok;
       node->offset = lval->offset;
       return node;
     }
