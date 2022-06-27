@@ -14,7 +14,7 @@ shared_ptr<symbol::LVal> symbol::SymTable::find_lval(
   // TODO: should element of lval_table be map
   for (auto i = lval_table.size() - 1; i != -1; i--) {
     for (auto lval : lval_table.at(i)) {
-      if (token.len == lval->tok.len && token.type == lval->tok.type &&
+      if (token.len == lval->tok.len &&
           !memcmp(token.lexeme_string, lval->tok.lexeme_string, token.len)) {
         return lval;
       }
@@ -26,7 +26,7 @@ shared_ptr<symbol::LVal> symbol::SymTable::find_lval(
 shared_ptr<symbol::LVal> symbol::SymTable::find_lval_current_scope(
     const lexer::Token& token) {
   for (auto lval : current()) {
-    if (token.len == lval->tok.len && token.type == lval->tok.type &&
+    if (token.len == lval->tok.len &&
         !memcmp(token.lexeme_string, lval->tok.lexeme_string, token.len)) {
       return lval;
     }
