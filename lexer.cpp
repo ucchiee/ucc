@@ -63,6 +63,12 @@ lexer::Token lexer::TokenStream::expect_ident() {
   return m_token_vec[m_current_token_idx++];
 }
 
+void lexer::TokenStream::push_back(Kind kind) {
+  m_current_token_idx--;
+  if (current().kind != kind) {
+    error("failed to push_back");
+  }
+}
 void lexer::TokenStream::push_back(char kind) {
   m_current_token_idx--;
   if (current().kind != lexer::Kind(kind)) {
