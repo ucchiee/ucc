@@ -45,7 +45,7 @@ shared_ptr<symbol::LVal> symbol::SymTable::register_lval(
 }
 
 vector<shared_ptr<symbol::LVal>>& symbol::SymTable::current() {
-  return lval_table.at(lval_table.size() - 1);
+  return lval_table.back();
 }
 
 void symbol::SymTable::begin_block() { lval_table.push_back({}); }
@@ -62,7 +62,7 @@ void symbol::SymTable::end_funcdef() {}
 int symbol::SymTable::get_last_offset() {
   for (auto iter = lval_table.rbegin(); iter != lval_table.rend(); iter++) {
     if ((*iter).size() == 0) continue;
-    return (*iter).at((*iter).size() - 1)->offset;
+    return (*iter).back()->offset;
   }
   return 0;
 }
