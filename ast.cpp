@@ -23,6 +23,7 @@ unique_ptr<ast::Node> ast::create_num(int val) {
   unique_ptr<ast::Node> node = ast::create_node(ast::NodeKind::nd_num);
 
   node->val = val;
+  node->type = type::create_type(type::Kind::type_int, 4);
   return move(node);
 }
 

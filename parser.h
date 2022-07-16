@@ -19,8 +19,8 @@ class Parser {
   ~Parser() = default;
 
   std::unique_ptr<ast::Node> program();
-  std::unique_ptr<type::Type> type_specifier();
-  lexer::Token declarator(std::unique_ptr<type::Type> type);
+  std::shared_ptr<type::Type> type_specifier();
+  lexer::Token declarator(std::shared_ptr<type::Type> type);
   std::unique_ptr<ast::Node> funcdef();
   std::unique_ptr<ast::Node> param_decl();
   std::unique_ptr<ast::Node> stmt();

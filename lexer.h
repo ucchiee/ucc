@@ -42,7 +42,7 @@ struct Token {
   char *lexeme_string;
   int len;
   int lexeme_number;
-  type::Type type;
+  std::shared_ptr<type::Type> type;
 };
 
 class TokenStream {

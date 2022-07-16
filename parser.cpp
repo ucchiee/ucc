@@ -26,22 +26,21 @@ unique_ptr<Node> parser::Parser::program() {
   return node;
 }
 
-unique_ptr<type::Type> parser::Parser::type_specifier() {
-  auto type = make_unique<type::Type>();
+shared_ptr<type::Type> parser::Parser::type_specifier() {
   if (m_ts.consume(lexer::Kind::kw_int)) {
-    type->add_int();
+    return type::create_type(type::Kind::type_int, 4);
   } else {
     m_ts.error("unknown type");
+    return NULL;  // never reached
   }
-  return type;
 }
 
-lexer::Token parser::Parser::declarator(std::unique_ptr<type::Type> type) {
+lexer::Token parser::Parser::declarator(std::shared_ptr<type::Type> type) {
   while (m_ts.consume('*')) {
-    type->add_ptr();
+    type = type::add_ptr(type);
   }
   lexer::Token tok = m_ts.expect_ident();
-  tok.type = *type;
+  tok.type = move(type);
   return tok;
 }
 
@@ -89,6 +88,7 @@ unique_ptr<Node> parser::Parser::param_decl() {
   lval = symtable.register_lval(tok);
   node->offset = lval->offset;
   node->tok = tok;
+  node->type = tok.type;
   return node;
 }
 
@@ -285,6 +285,7 @@ unique_ptr<Node> parser::Parser::primary() {
       if (node->child_vec.size() > 6) {
         cerr << "Max num of arguments is 6" << endl;
       }
+      // TODO : return type
       return node;
     } else {
       // ident
@@ -294,6 +295,7 @@ unique_ptr<Node> parser::Parser::primary() {
         m_ts.error("Not defined ident");
       }
       node->tok = lval->tok;
+      node->type = lval->tok.type;
       node->offset = lval->offset;
       return node;
     }
