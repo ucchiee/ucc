@@ -2,37 +2,38 @@
 
 #include <memory>
 
+using namespace std;
+
 namespace type {
 
 Type::Type() { m_next = NULL; }
 
 Type::~Type() {}
 
-std::shared_ptr<Type> create_type(Kind kind, int size) {
-  auto type = std::make_shared<Type>();
+shared_ptr<Type> create_type(Kind kind, int size) {
+  auto type = make_shared<Type>();
   type->m_kind = kind;
   type->m_size = size;
   return type;
 }
 
-std::shared_ptr<Type> create_int() { return create_type(Kind::type_int, 4); }
+shared_ptr<Type> create_int() { return create_type(Kind::type_int, 4); }
 
-std::shared_ptr<Type> create_ptr() { return create_type(Kind::type_ptr, 8); }
+shared_ptr<Type> create_ptr() { return create_type(Kind::type_ptr, 8); }
 
-std::shared_ptr<Type> create_func() { return create_type(Kind::type_func, -1); }
+shared_ptr<Type> create_func() { return create_type(Kind::type_func, -1); }
 
-std::shared_ptr<Type> add_type(std::shared_ptr<Type> type, Kind kind,
-                               int size) {
+shared_ptr<Type> add_type(shared_ptr<Type> type, Kind kind, int size) {
   auto new_type = create_type(kind, size);
   new_type->m_next = move(type);
   return new_type;
 }
 
-std::shared_ptr<Type> add_int(std::shared_ptr<Type> type) {
+shared_ptr<Type> add_int(shared_ptr<Type> type) {
   return add_type(type, Kind::type_int, 4);
 }
 
-std::shared_ptr<Type> add_ptr(std::shared_ptr<Type> type) {
+shared_ptr<Type> add_ptr(shared_ptr<Type> type) {
   return add_type(type, Kind::type_ptr, 8);
 }
 
@@ -54,12 +55,12 @@ bool operator==(Type type1, Type type2) {
   return false;
 }
 
-bool operator==(std::shared_ptr<Type> type1, std::shared_ptr<Type> type2) {
+bool operator==(shared_ptr<Type> type1, shared_ptr<Type> type2) {
   return operator==(*type1, *type2);
 }
 
-bool operator==(std::vector<std::shared_ptr<Type>> vec_type1,
-                std::vector<std::shared_ptr<Type>> vec_type2) {
+bool operator==(vector<shared_ptr<Type>> vec_type1,
+                vector<shared_ptr<Type>> vec_type2) {
   if (vec_type1.size() != vec_type2.size()) {
     return false;
   }

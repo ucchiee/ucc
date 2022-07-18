@@ -10,7 +10,9 @@
 
 using namespace std;
 
-void codegen::gen(unique_ptr<ast::Node> node) {
+namespace codegen {
+
+void gen(unique_ptr<ast::Node> node) {
   vector<string> arg_regs{"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
   switch (node->kind) {
     case ast::NodeKind::nd_program:
@@ -71,7 +73,7 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       cout << "  push [rax]\n";  // push final result
       return;
     case ast::NodeKind::nd_if: {
-      string if_end = codegen::create_label("ifEnd");
+      string if_end = create_label("ifEnd");
       // expr
       gen(move(node->child_vec.at(0)));
 
@@ -84,8 +86,8 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       return;
     }
     case ast::NodeKind::nd_ifelse: {
-      string if_end = codegen::create_label("ifEnd");
-      string else_end = codegen::create_label("elseEnd");
+      string if_end = create_label("ifEnd");
+      string else_end = create_label("elseEnd");
       // expr
       gen(move(node->child_vec.at(0)));
 
@@ -102,8 +104,8 @@ void codegen::gen(unique_ptr<ast::Node> node) {
       return;
     }
     case ast::NodeKind::nd_while: {
-      string while_start = codegen::create_label("whileStart");
-      string while_end = codegen::create_label("whileEnd");
+      string while_start = create_label("whileStart");
+      string while_end = create_label("whileEnd");
       // start
       cout << while_start << ":\n";
       // expr
@@ -121,8 +123,8 @@ void codegen::gen(unique_ptr<ast::Node> node) {
     }
     case ast::NodeKind::nd_for: {
       // for (0; 1; 2) 3
-      string for_start = codegen::create_label("forStart");
-      string for_end = codegen::create_label("forEnd");
+      string for_start = create_label("forStart");
+      string for_end = create_label("forEnd");
       // initialize
       gen(move(node->child_vec.at(0)));
       // start
@@ -251,7 +253,7 @@ void codegen::gen(unique_ptr<ast::Node> node) {
   cout << "  push rax\n";
 }
 
-void codegen::gen_lval(unique_ptr<ast::Node> node) {
+void gen_lval(unique_ptr<ast::Node> node) {
   // push addr of lval (i.e. rbp - 8)
   switch (node->kind) {
     case ast::NodeKind::nd_deref:
@@ -270,9 +272,10 @@ void codegen::gen_lval(unique_ptr<ast::Node> node) {
   }
 }
 
-string codegen::create_label(string name) {
+string create_label(string name) {
   static int num = 0;
   stringstream ss;
-  ss << codegen::label_prefix << "." << name << "." << num++;
+  ss << label_prefix << "." << name << "." << num++;
   return ss.str();
 }
+}  // namespace codegen

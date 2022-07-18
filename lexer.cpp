@@ -215,17 +215,17 @@ void TokenStream::tokenize() {
           int len = int(p - tmp);
 
           // Check whether this is reserved.
-          if (len == 6 && std::memcmp(tmp, "return", 6) == 0) {
+          if (len == 6 && memcmp(tmp, "return", 6) == 0) {
             token = {Kind::kw_return, tmp, len};
-          } else if (len == 2 && std::memcmp(tmp, "if", 2) == 0) {
+          } else if (len == 2 && memcmp(tmp, "if", 2) == 0) {
             token = {Kind::kw_if, tmp, len};
-          } else if (len == 4 && std::memcmp(tmp, "else", 4) == 0) {
+          } else if (len == 4 && memcmp(tmp, "else", 4) == 0) {
             token = {Kind::kw_else, tmp, len};
-          } else if (len == 5 && std::memcmp(tmp, "while", 5) == 0) {
+          } else if (len == 5 && memcmp(tmp, "while", 5) == 0) {
             token = {Kind::kw_while, tmp, len};
-          } else if (len == 3 && std::memcmp(tmp, "for", 3) == 0) {
+          } else if (len == 3 && memcmp(tmp, "for", 3) == 0) {
             token = {Kind::kw_for, tmp, len};
-          } else if (len == 3 && std::memcmp(tmp, "int", 3) == 0) {
+          } else if (len == 3 && memcmp(tmp, "int", 3) == 0) {
             token = {Kind::kw_int, tmp, len};
           } else {
             token = {Kind::tk_id, tmp, len};
