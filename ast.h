@@ -27,7 +27,7 @@ enum class NodeKind {
   nd_compound,
   nd_funcall,
   nd_funcdef,
-  nd_param_decl,
+  nd_arg_decl,
   nd_eq,
   nd_ne,
   nd_lt,
@@ -44,7 +44,7 @@ struct Node {
   lexer::Token tok;                  // funcall, funcdef, ident
   int total_size;                    // funcdef
   int arg_idx;
-  std::vector<std::shared_ptr<symbol::LVal>> local;
+  std::shared_ptr<symbol::Symbol> local;
 
   void add_child(std::unique_ptr<Node> node);
 };

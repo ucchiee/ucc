@@ -5,64 +5,101 @@
 
 using namespace std;
 
-symbol::SymTable::SymTable() : lval_table{} {}
+namespace symbol {
 
-symbol::SymTable::~SymTable() {}
+Symbol::Symbol() { next = nullptr; }
 
-shared_ptr<symbol::LVal> symbol::SymTable::find_lval(
-    const lexer::Token& token) {
-  // TODO: should element of lval_table be map
-  for (auto i = lval_table.size() - 1; i != -1; i--) {
-    for (auto lval : lval_table.at(i)) {
-      if (token.len == lval->tok.len &&
-          !memcmp(token.lexeme_string, lval->tok.lexeme_string, token.len)) {
-        return lval;
-      }
+Symbol::~Symbol() {}
+
+std::shared_ptr<Symbol> create_symbol(const lexer::Token& tok,
+                                      std::shared_ptr<type::Type> type,
+                                      int offset) {
+  auto symbol = make_shared<Symbol>();
+  symbol->tok = tok;
+  symbol->offset = offset;
+  symbol->type = type;
+  return symbol;
+}
+
+std::shared_ptr<Symbol> add_symbol(std::shared_ptr<Symbol> symbol_base,
+                                   std::shared_ptr<Symbol> symbol) {
+  if (symbol_base == nullptr) {
+    return symbol;
+  } else {
+    symbol->next = symbol_base;
+    return symbol;
+  }
+}
+
+std::shared_ptr<Symbol> find_symbol(std::shared_ptr<Symbol> symbol,
+                                    const lexer::Token& tok) {
+  if (symbol == nullptr) {
+    return nullptr;
+  } else if (symbol->tok == tok) {
+    return symbol;
+  } else {
+    return find_symbol(symbol->next, tok);
+  }
+}
+
+int size(std::shared_ptr<Symbol> symbol) {
+  if (symbol == nullptr) {
+    return 0;
+  } else {
+    return 1 + size(symbol->next);
+  }
+}
+
+SymTable::SymTable() : m_local{} {}
+
+SymTable::~SymTable() {}
+
+shared_ptr<Symbol> SymTable::find_local(const lexer::Token& token) {
+  for (auto i = m_local.size() - 1; i != -1; i--) {
+    auto symbol = find_symbol(m_local.at(i), token);
+    if (symbol != nullptr) {
+      return symbol;
     }
   }
   return nullptr;
 }
 
-shared_ptr<symbol::LVal> symbol::SymTable::find_lval_current_scope(
+shared_ptr<Symbol> SymTable::find_local_current_scope(
     const lexer::Token& token) {
-  for (auto lval : current()) {
-    if (token.len == lval->tok.len &&
-        !memcmp(token.lexeme_string, lval->tok.lexeme_string, token.len)) {
-      return lval;
-    }
-  }
-  return nullptr;
+  return find_symbol(local_current(), token);
 }
 
-shared_ptr<symbol::LVal> symbol::SymTable::register_lval(
-    const lexer::Token& token) {
-  // TODO: should element of lval_table be map
-  auto lval = make_shared<LVal>();
-  lval->tok = token;
-  lval->offset = get_last_offset() + 8;
-  current().push_back(lval);
-  return lval;
+shared_ptr<Symbol> SymTable::register_local(
+    std::pair<lexer::Token, shared_ptr<type::Type>> tok_type_pair) {
+  auto [tok, type] = tok_type_pair;
+  auto symbol = create_symbol(tok, type, get_last_offset() + 8);
+
+  // update current (add symbol)
+  auto new_current = add_symbol(local_current(), symbol);
+  m_local.pop_back();
+  m_local.push_back(new_current);
+
+  return symbol;
 }
 
-vector<shared_ptr<symbol::LVal>>& symbol::SymTable::current() {
-  return lval_table.back();
+shared_ptr<Symbol> SymTable::local_current() { return m_local.back(); }
+
+void SymTable::begin_block() { m_local.push_back(nullptr); }
+
+void SymTable::end_block() { m_local.pop_back(); }
+
+void SymTable::begin_funcdef() {
+  m_local.clear();
+  m_local.push_back(nullptr);
 }
 
-void symbol::SymTable::begin_block() { lval_table.push_back({}); }
+void SymTable::end_funcdef() {}
 
-void symbol::SymTable::end_block() { lval_table.pop_back(); }
-
-void symbol::SymTable::begin_funcdef() {
-  lval_table.clear();
-  lval_table.push_back({});
-}
-
-void symbol::SymTable::end_funcdef() {}
-
-int symbol::SymTable::get_last_offset() {
-  for (auto iter = lval_table.rbegin(); iter != lval_table.rend(); iter++) {
-    if ((*iter).size() == 0) continue;
-    return (*iter).back()->offset;
+int SymTable::get_last_offset() {
+  for (auto i = m_local.size() - 1; i != -1; i--) {
+    if (m_local.at(i) == nullptr) continue;
+    return m_local.at(i)->offset;
   }
   return 0;
 }
+}  // namespace symbol

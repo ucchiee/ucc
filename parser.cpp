@@ -28,26 +28,35 @@ unique_ptr<Node> parser::Parser::program() {
 
 shared_ptr<type::Type> parser::Parser::type_specifier() {
   if (m_ts.consume(lexer::Kind::kw_int)) {
-    return type::create_type(type::Kind::type_int, 4);
+    return type::create_int();
   } else {
     m_ts.error("unknown type");
     return NULL;  // never reached
   }
 }
 
-lexer::Token parser::Parser::declarator(std::shared_ptr<type::Type> type) {
+std::pair<lexer::Token, std::shared_ptr<type::Type>> parser::Parser::declarator(
+    std::shared_ptr<type::Type> type) {
   while (m_ts.consume('*')) {
     type = type::add_ptr(type);
   }
   lexer::Token tok = m_ts.expect_ident();
-  tok.type = move(type);
-  return tok;
+  return {tok, type};
+}
+
+std::pair<lexer::Token, std::shared_ptr<type::Type>>
+parser::Parser::param_decl() {
+  return declarator(type_specifier());
 }
 
 unique_ptr<Node> parser::Parser::funcdef() {
   // ident "(" param_decl ("," param_decl)* ")" compound_stmt
   auto node = create_node(NodeKind::nd_funcdef);
-  lexer::Token tok = m_ts.expect_ident();
+  auto [tok, type] = param_decl();
+
+  auto func_type = type::create_func();
+  func_type->m_ret_type = type;
+  // function type is holded by node
   node->tok = tok;
 
   symtable.begin_funcdef();
@@ -55,17 +64,24 @@ unique_ptr<Node> parser::Parser::funcdef() {
   m_ts.expect('(');
   int num_arg = 0;
   while (!m_ts.consume(')')) {
-    auto arg_child = param_decl();
+    auto [tok, type] = param_decl();
+    func_type->m_args_type.push_back(type);
+
+    auto arg_child = register_args_as_local({tok, type});
     arg_child->arg_idx = num_arg++;
     node->add_child(move(arg_child));
     m_ts.consume(',');
   }
+  // register and check(TODO) function definition
+  node->type = func_type;
+
   auto node_compound = compound_stmt();
 
-  node->total_size = symtable.current().size() * 8;
+  // TODO : this should be changed, a little bit ugly
+  node->total_size = symbol::size(symtable.local_current()) * 8;
 
   // assign lval_vec to that of compound_stmt
-  node_compound->local = symtable.current();
+  node_compound->local = symtable.local_current();
   symtable.end_funcdef();
 
   node->add_child(move(node_compound));
@@ -73,22 +89,23 @@ unique_ptr<Node> parser::Parser::funcdef() {
   return node;
 }
 
-unique_ptr<Node> parser::Parser::param_decl() {
+unique_ptr<Node> parser::Parser::register_args_as_local(
+    std::pair<lexer::Token, std::shared_ptr<type::Type>> tok_type_pair) {
   // type_specifier declarator
-  auto node = create_node(NodeKind::nd_param_decl);
-  lexer::Token tok = declarator(type_specifier());
+  auto node = create_node(NodeKind::nd_arg_decl);
+  auto [tok, type] = tok_type_pair;
 
   // register arg as a local value for now
   // TODO:
   // In the future, I need to fix this behavior.
-  auto lval = symtable.find_lval(tok);
+  auto lval = symtable.find_local(tok);
   if (lval) {
     m_ts.error("Redefinition of arguments");
   }
-  lval = symtable.register_lval(tok);
+  lval = symtable.register_local({tok, type});
   node->offset = lval->offset;
   node->tok = tok;
-  node->type = tok.type;
+  node->type = type;
   return node;
 }
 
@@ -147,7 +164,7 @@ unique_ptr<Node> parser::Parser::stmt() {
     symtable.begin_block();
 
     node = compound_stmt();
-    node->local = symtable.current();
+    node->local = symtable.local_current();
 
     symtable.end_block();
   } else {
@@ -163,12 +180,12 @@ unique_ptr<Node> parser::Parser::compound_stmt() {
   m_ts.expect('{');
   while (m_ts.consume(lexer::Kind::kw_int)) {
     m_ts.push_back(lexer::Kind::kw_int);
-    lexer::Token tok = declarator(type_specifier());
-    auto lval = symtable.find_lval_current_scope(tok);
+    auto [tok, type] = param_decl();
+    auto lval = symtable.find_local_current_scope(tok);
     if (lval) {
       m_ts.error("Redefinition of ident");
     }
-    lval = symtable.register_lval(tok);
+    lval = symtable.register_local({tok, type});
     m_ts.expect(';');
   }
   while (!m_ts.consume('}')) {
@@ -290,13 +307,13 @@ unique_ptr<Node> parser::Parser::primary() {
     } else {
       // ident
       node = ast::create_node(NodeKind::nd_lval);
-      auto lval = symtable.find_lval(tok);
-      if (!lval) {
+      auto symbol = symtable.find_local(tok);
+      if (!symbol) {
         m_ts.error("Not defined ident");
       }
-      node->tok = lval->tok;
-      node->type = lval->tok.type;
-      node->offset = lval->offset;
+      node->tok = symbol->tok;
+      node->type = symbol->type;
+      node->offset = symbol->offset;
       return node;
     }
   }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "ast.h"
@@ -20,9 +21,12 @@ class Parser {
 
   std::unique_ptr<ast::Node> program();
   std::shared_ptr<type::Type> type_specifier();
-  lexer::Token declarator(std::shared_ptr<type::Type> type);
+  std::pair<lexer::Token, std::shared_ptr<type::Type>> declarator(
+      std::shared_ptr<type::Type> type);
+  std::pair<lexer::Token, std::shared_ptr<type::Type>> param_decl();
   std::unique_ptr<ast::Node> funcdef();
-  std::unique_ptr<ast::Node> param_decl();
+  std::unique_ptr<ast::Node> register_args_as_local(
+      std::pair<lexer::Token, std::shared_ptr<type::Type>>);
   std::unique_ptr<ast::Node> stmt();
   std::unique_ptr<ast::Node> compound_stmt();
   std::unique_ptr<ast::Node> expr();
