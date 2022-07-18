@@ -20,6 +20,9 @@ class Type {
   Type &operator=(const Type &) = default;
   ~Type();
 
+  bool is_kind_of(Kind);
+  bool is_ptr();
+
   friend std::shared_ptr<Type> create_type(Kind, int);
   friend bool operator==(Type, Type);
 
@@ -44,8 +47,6 @@ std::shared_ptr<Type> add_int(std::shared_ptr<Type> type);
 std::shared_ptr<Type> add_ptr(std::shared_ptr<Type> type);
 
 bool operator==(Type, Type);
-bool operator==(std::shared_ptr<Type>, std::shared_ptr<Type>);
-bool operator==(std::vector<std::shared_ptr<Type>>,
-                std::vector<std::shared_ptr<Type>>);
+bool operator!=(Type, Type);
 
 }  // namespace type

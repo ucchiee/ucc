@@ -20,7 +20,7 @@ class Symbol {
 
   lexer::Token tok;
   std::shared_ptr<type::Type> type;
-  int offset;       // local
+  int offset;  // local
 
  private:
 };
@@ -48,7 +48,11 @@ class SymTable {
       const lexer::Token &token);
   std::shared_ptr<symbol::Symbol> register_local(
       std::pair<lexer::Token, std::shared_ptr<type::Type>>);
+  std::shared_ptr<symbol::Symbol> find_global(const lexer::Token &token);
+  std::shared_ptr<symbol::Symbol> register_global(
+      std::pair<lexer::Token, std::shared_ptr<type::Type>>);
   std::shared_ptr<Symbol> local_current();
+  std::shared_ptr<Symbol> global_current();
   void begin_block();
   void end_block();
   void begin_funcdef();

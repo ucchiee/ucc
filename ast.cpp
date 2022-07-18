@@ -13,6 +13,15 @@ void Node::add_child(unique_ptr<Node> child) {
   this->child_vec.push_back(move(child));
 }
 
+std::unique_ptr<ast::Node> create_node(ast::NodeKind kind,
+                                       std::shared_ptr<type::Type> type,
+                                       std::unique_ptr<ast::Node> first,
+                                       std::unique_ptr<ast::Node> second) {
+  auto node = create_node(kind, move(first), move(second));
+  node->type = type;
+  return node;
+}
+
 unique_ptr<Node> create_node(NodeKind kind, unique_ptr<Node> first,
                              unique_ptr<Node> second) {
   unique_ptr<Node> node = make_unique<Node>();
@@ -21,11 +30,12 @@ unique_ptr<Node> create_node(NodeKind kind, unique_ptr<Node> first,
   if (second) node->child_vec.push_back(move(second));
   return node;
 }
-unique_ptr<Node> create_num(int val) {
-  unique_ptr<Node> node = create_node(NodeKind::nd_num);
+
+unique_ptr<Node> create_num(int val, shared_ptr<type::Type> type) {
+  if (type == nullptr) type = type::create_int();
+  unique_ptr<Node> node = create_node(NodeKind::nd_num, type);
 
   node->val = val;
-  node->type = type::create_int();
   return move(node);
 }
 

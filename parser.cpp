@@ -75,6 +75,11 @@ unique_ptr<Node> Parser::funcdef() {
   }
   // register and check(TODO) function definition
   node->type = func_type;
+  auto symbol = symtable.find_global(tok);
+  if (symbol) {
+    m_ts.error("Already defined function");
+  }
+  symtable.register_global({tok, func_type});
 
   auto node_compound = compound_stmt();
 
@@ -200,9 +205,15 @@ unique_ptr<Node> Parser::expr() { return assign(); }
 unique_ptr<Node> Parser::assign() {
   auto node = equality();
   if (m_ts.consume('=')) {
-    return create_node(NodeKind::nd_assign, move(node), assign());
+    auto node_r = assign();
+    check_type(node->type, node_r->type);
+    auto type = node->type;
+    return create_node(NodeKind::nd_assign, type, move(node), move(node_r));
   } else if (m_ts.consume(lexer::Kind::op_add_into)) {
-    return create_node(NodeKind::nd_add_into, move(node), assign());
+    auto node_r = assign();
+    check_type(node->type, node_r->type);
+    auto type = node->type;
+    return create_node(NodeKind::nd_add_into, type, move(node), move(node_r));
   } else {
     return move(node);
   }
@@ -213,9 +224,15 @@ unique_ptr<Node> Parser::equality() {
 
   for (;;) {
     if (m_ts.consume(lexer::Kind::op_eq)) {
-      node = create_node(NodeKind::nd_eq, move(node), relational());
+      auto node_r = relational();
+      check_type(node->type, node_r->type);
+      node = create_node(NodeKind::nd_eq, type::create_int(), move(node),
+                         move(node_r));
     } else if (m_ts.consume(lexer::Kind::op_ne)) {
-      node = create_node(NodeKind::nd_ne, move(node), relational());
+      auto node_r = relational();
+      check_type(node->type, node_r->type);
+      node = create_node(NodeKind::nd_ne, type::create_int(), move(node),
+                         move(node_r));
     } else {
       return move(node);
     }
@@ -227,13 +244,25 @@ unique_ptr<Node> Parser::relational() {
 
   for (;;) {
     if (m_ts.consume(lexer::Kind::op_lt)) {
-      node = create_node(NodeKind::nd_lt, move(node), add());
+      auto node_r = add();
+      check_type(node->type, node_r->type);
+      auto type = node->type;
+      node = create_node(NodeKind::nd_lt, type, move(node), move(node_r));
     } else if (m_ts.consume(lexer::Kind::op_le)) {
-      node = create_node(NodeKind::nd_le, move(node), add());
+      auto node_r = add();
+      check_type(node->type, node_r->type);
+      auto type = node->type;
+      node = create_node(NodeKind::nd_le, type, move(node), move(node_r));
     } else if (m_ts.consume(lexer::Kind::op_gt)) {
-      node = create_node(NodeKind::nd_lt, add(), move(node));
+      auto node_l = add();
+      check_type(node_l->type, node->type);
+      auto type = node->type;
+      node = create_node(NodeKind::nd_lt, type, move(node_l), move(node));
     } else if (m_ts.consume(lexer::Kind::op_ge)) {
-      node = create_node(NodeKind::nd_le, add(), move(node));
+      auto node_l = add();
+      check_type(node_l->type, node->type);
+      auto type = node->type;
+      node = create_node(NodeKind::nd_le, type, move(node_l), move(node));
     } else {
       return move(node);
     }
@@ -245,9 +274,15 @@ unique_ptr<Node> Parser::add() {
 
   for (;;) {
     if (m_ts.consume('+')) {
-      node = create_node(NodeKind::nd_add, move(node), mul());
+      auto node_r = mul();
+      check_type(node->type, node_r->type);
+      auto type = node->type;
+      node = create_node(NodeKind::nd_add, type, move(node), move(node_r));
     } else if (m_ts.consume('-')) {
-      node = create_node(NodeKind::nd_sub, move(node), mul());
+      auto node_r = mul();
+      check_type(node->type, node_r->type);
+      auto type = node->type;
+      node = create_node(NodeKind::nd_sub, type, move(node), move(node_r));
     } else {
       return move(node);
     }
@@ -259,9 +294,15 @@ unique_ptr<Node> Parser::mul() {
 
   for (;;) {
     if (m_ts.consume('*')) {
-      node = create_node(NodeKind::nd_mul, move(node), unary());
+      auto node_r = unary();
+      check_type(node->type, node_r->type);
+      auto type = node->type;
+      node = create_node(NodeKind::nd_mul, type, move(node), move(node_r));
     } else if (m_ts.consume('/')) {
-      node = create_node(NodeKind::nd_div, move(node), unary());
+      auto node_r = unary();
+      check_type(node->type, node_r->type);
+      auto type = node->type;
+      node = create_node(NodeKind::nd_div, type, move(node), move(node_r));
     } else {
       return move(node);
     }
@@ -272,11 +313,21 @@ unique_ptr<Node> Parser::unary() {
   if (m_ts.consume('+')) {
     return primary();
   } else if (m_ts.consume('-')) {
-    return create_node(NodeKind::nd_sub, create_num(0), primary());
+    auto node_r = primary();
+    auto node_l = create_num(0, node_r->type);
+    auto type = node_r->type;
+    return create_node(NodeKind::nd_sub, type, move(node_l), move(node_r));
   } else if (m_ts.consume('*')) {
-    return create_node(NodeKind::nd_deref, unary());
+    auto node = unary();
+    if (!node->type->is_ptr()) {
+      m_ts.error("ptr is expected");
+    }
+    auto type = node->type;
+    return create_node(NodeKind::nd_deref, type->m_next, move(node));
   } else if (m_ts.consume('&')) {
-    return create_node(NodeKind::nd_addr, unary());
+    auto node = unary();
+    auto type = node->type;
+    return create_node(NodeKind::nd_addr, type::add_ptr(type), move(node));
   }
   return primary();
 }
@@ -295,15 +346,21 @@ unique_ptr<Node> Parser::primary() {
     if (m_ts.consume('(')) {
       // funcall, ident '(' ')'
       node = create_node(NodeKind::nd_funcall);
+      // check function is declared
+      auto symbol = symtable.find_global(tok);
+      if (!symbol) {
+        m_ts.error("Not declared function");
+      }
+      node->type = symbol->type->m_ret_type;
       node->tok = tok;
       while (!m_ts.consume(')')) {
+        // TODO : type check of arguments
         node->add_child(move(expr()));
         m_ts.consume(',');
       }
       if (node->child_vec.size() > 6) {
-        cerr << "Max num of arguments is 6" << endl;
+        m_ts.error("Max num of arguments is 6");
       }
-      // TODO : return type
       return node;
     } else {
       // ident
@@ -322,5 +379,12 @@ unique_ptr<Node> Parser::primary() {
   // num
   int val = m_ts.expect_number();
   return move(create_num(val));
+}
+
+void Parser::check_type(std::shared_ptr<type::Type> type1,
+                        std::shared_ptr<type::Type> type2) {
+  if (*type1 != *type2) {
+    m_ts.error("type is imcompatible");
+  }
 }
 }  // namespace parser
