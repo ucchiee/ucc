@@ -27,6 +27,7 @@ enum class NodeKind {
   nd_compound,
   nd_funcall,
   nd_funcdef,
+  nd_funcdecl,
   nd_arg_decl,
   nd_eq,
   nd_ne,

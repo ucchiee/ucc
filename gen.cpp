@@ -201,6 +201,8 @@ void gen(unique_ptr<ast::Node> node) {
       cout << "  ret\n";
       return;
     }
+    case ast::NodeKind::nd_funcdecl:
+      return;
     default:
       break;
   }
