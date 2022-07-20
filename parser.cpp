@@ -14,11 +14,13 @@
 using namespace std;
 using namespace ast;
 
+namespace parser {
+
 symbol::SymTable symtable;
 
-parser::Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
+Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
 
-unique_ptr<Node> parser::Parser::program() {
+unique_ptr<Node> Parser::program() {
   auto node = create_node(NodeKind::nd_program);
   while (!m_ts.at_eof()) {
     node->add_child(funcdef());
@@ -26,7 +28,7 @@ unique_ptr<Node> parser::Parser::program() {
   return node;
 }
 
-shared_ptr<type::Type> parser::Parser::type_specifier() {
+shared_ptr<type::Type> Parser::type_specifier() {
   if (m_ts.consume(lexer::Kind::kw_int)) {
     return type::create_int();
   } else {
@@ -35,8 +37,8 @@ shared_ptr<type::Type> parser::Parser::type_specifier() {
   }
 }
 
-std::pair<lexer::Token, std::shared_ptr<type::Type>> parser::Parser::declarator(
-    std::shared_ptr<type::Type> type) {
+pair<lexer::Token, shared_ptr<type::Type>> Parser::declarator(
+    shared_ptr<type::Type> type) {
   while (m_ts.consume('*')) {
     type = type::add_ptr(type);
   }
@@ -44,12 +46,11 @@ std::pair<lexer::Token, std::shared_ptr<type::Type>> parser::Parser::declarator(
   return {tok, type};
 }
 
-std::pair<lexer::Token, std::shared_ptr<type::Type>>
-parser::Parser::param_decl() {
+pair<lexer::Token, shared_ptr<type::Type>> Parser::param_decl() {
   return declarator(type_specifier());
 }
 
-unique_ptr<Node> parser::Parser::funcdef() {
+unique_ptr<Node> Parser::funcdef() {
   // ident "(" param_decl ("," param_decl)* ")" compound_stmt
   auto node = create_node(NodeKind::nd_funcdef);
   auto [tok, type] = param_decl();
@@ -89,8 +90,8 @@ unique_ptr<Node> parser::Parser::funcdef() {
   return node;
 }
 
-unique_ptr<Node> parser::Parser::register_args_as_local(
-    std::pair<lexer::Token, std::shared_ptr<type::Type>> tok_type_pair) {
+unique_ptr<Node> Parser::register_args_as_local(
+    pair<lexer::Token, shared_ptr<type::Type>> tok_type_pair) {
   // type_specifier declarator
   auto node = create_node(NodeKind::nd_arg_decl);
   auto [tok, type] = tok_type_pair;
@@ -109,7 +110,7 @@ unique_ptr<Node> parser::Parser::register_args_as_local(
   return node;
 }
 
-unique_ptr<Node> parser::Parser::stmt() {
+unique_ptr<Node> Parser::stmt() {
   unique_ptr<Node> node;
   if (m_ts.consume(lexer::Kind::kw_return)) {
     // return
@@ -143,7 +144,7 @@ unique_ptr<Node> parser::Parser::stmt() {
     // first and second expr
     for (int i = 0; i < 2; i++) {
       if (m_ts.consume(';')) {
-        node->add_child(create_node(ast::NodeKind::nd_blank));
+        node->add_child(create_node(NodeKind::nd_blank));
       } else {
         node->add_child(expr());
         m_ts.expect(';');
@@ -151,7 +152,7 @@ unique_ptr<Node> parser::Parser::stmt() {
     }
     // third expr
     if (m_ts.consume(')')) {
-      node->add_child(create_node(ast::NodeKind::nd_blank));
+      node->add_child(create_node(NodeKind::nd_blank));
     } else {
       node->add_child(expr());
       m_ts.expect(')');
@@ -174,7 +175,7 @@ unique_ptr<Node> parser::Parser::stmt() {
   return node;
 }
 
-unique_ptr<Node> parser::Parser::compound_stmt() {
+unique_ptr<Node> Parser::compound_stmt() {
   // compound
   auto node = create_node(NodeKind::nd_compound);
   m_ts.expect('{');
@@ -194,9 +195,9 @@ unique_ptr<Node> parser::Parser::compound_stmt() {
   return node;
 }
 
-unique_ptr<Node> parser::Parser::expr() { return assign(); }
+unique_ptr<Node> Parser::expr() { return assign(); }
 
-unique_ptr<Node> parser::Parser::assign() {
+unique_ptr<Node> Parser::assign() {
   auto node = equality();
   if (m_ts.consume('=')) {
     return create_node(NodeKind::nd_assign, move(node), assign());
@@ -207,7 +208,7 @@ unique_ptr<Node> parser::Parser::assign() {
   }
 }
 
-unique_ptr<ast::Node> parser::Parser::equality() {
+unique_ptr<Node> Parser::equality() {
   auto node = relational();
 
   for (;;) {
@@ -221,7 +222,7 @@ unique_ptr<ast::Node> parser::Parser::equality() {
   }
 }
 
-unique_ptr<ast::Node> parser::Parser::relational() {
+unique_ptr<Node> Parser::relational() {
   auto node = add();
 
   for (;;) {
@@ -239,7 +240,7 @@ unique_ptr<ast::Node> parser::Parser::relational() {
   }
 }
 
-unique_ptr<Node> parser::Parser::add() {
+unique_ptr<Node> Parser::add() {
   auto node = mul();
 
   for (;;) {
@@ -253,7 +254,7 @@ unique_ptr<Node> parser::Parser::add() {
   }
 }
 
-unique_ptr<Node> parser::Parser::mul() {
+unique_ptr<Node> Parser::mul() {
   auto node = unary();
 
   for (;;) {
@@ -267,7 +268,7 @@ unique_ptr<Node> parser::Parser::mul() {
   }
 }
 
-unique_ptr<Node> parser::Parser::unary() {
+unique_ptr<Node> Parser::unary() {
   if (m_ts.consume('+')) {
     return primary();
   } else if (m_ts.consume('-')) {
@@ -280,7 +281,7 @@ unique_ptr<Node> parser::Parser::unary() {
   return primary();
 }
 
-unique_ptr<Node> parser::Parser::primary() {
+unique_ptr<Node> Parser::primary() {
   unique_ptr<Node> node;
   // '(' expr ')'
   if (m_ts.consume('(')) {
@@ -293,7 +294,7 @@ unique_ptr<Node> parser::Parser::primary() {
   if (tok.kind != lexer::Kind::end) {
     if (m_ts.consume('(')) {
       // funcall, ident '(' ')'
-      node = ast::create_node(NodeKind::nd_funcall);
+      node = create_node(NodeKind::nd_funcall);
       node->tok = tok;
       while (!m_ts.consume(')')) {
         node->add_child(move(expr()));
@@ -306,7 +307,7 @@ unique_ptr<Node> parser::Parser::primary() {
       return node;
     } else {
       // ident
-      node = ast::create_node(NodeKind::nd_lval);
+      node = create_node(NodeKind::nd_lval);
       auto symbol = symtable.find_local(tok);
       if (!symbol) {
         m_ts.error("Not defined ident");
@@ -322,3 +323,4 @@ unique_ptr<Node> parser::Parser::primary() {
   int val = m_ts.expect_number();
   return move(create_num(val));
 }
+}  // namespace parser

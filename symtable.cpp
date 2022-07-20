@@ -11,9 +11,8 @@ Symbol::Symbol() { next = nullptr; }
 
 Symbol::~Symbol() {}
 
-std::shared_ptr<Symbol> create_symbol(const lexer::Token& tok,
-                                      std::shared_ptr<type::Type> type,
-                                      int offset) {
+shared_ptr<Symbol> create_symbol(const lexer::Token& tok,
+                                 shared_ptr<type::Type> type, int offset) {
   auto symbol = make_shared<Symbol>();
   symbol->tok = tok;
   symbol->offset = offset;
@@ -21,8 +20,8 @@ std::shared_ptr<Symbol> create_symbol(const lexer::Token& tok,
   return symbol;
 }
 
-std::shared_ptr<Symbol> add_symbol(std::shared_ptr<Symbol> symbol_base,
-                                   std::shared_ptr<Symbol> symbol) {
+shared_ptr<Symbol> add_symbol(shared_ptr<Symbol> symbol_base,
+                              shared_ptr<Symbol> symbol) {
   if (symbol_base == nullptr) {
     return symbol;
   } else {
@@ -31,8 +30,8 @@ std::shared_ptr<Symbol> add_symbol(std::shared_ptr<Symbol> symbol_base,
   }
 }
 
-std::shared_ptr<Symbol> find_symbol(std::shared_ptr<Symbol> symbol,
-                                    const lexer::Token& tok) {
+shared_ptr<Symbol> find_symbol(shared_ptr<Symbol> symbol,
+                               const lexer::Token& tok) {
   if (symbol == nullptr) {
     return nullptr;
   } else if (symbol->tok == tok) {
@@ -42,7 +41,7 @@ std::shared_ptr<Symbol> find_symbol(std::shared_ptr<Symbol> symbol,
   }
 }
 
-int size(std::shared_ptr<Symbol> symbol) {
+int size(shared_ptr<Symbol> symbol) {
   if (symbol == nullptr) {
     return 0;
   } else {
@@ -70,7 +69,7 @@ shared_ptr<Symbol> SymTable::find_local_current_scope(
 }
 
 shared_ptr<Symbol> SymTable::register_local(
-    std::pair<lexer::Token, shared_ptr<type::Type>> tok_type_pair) {
+    pair<lexer::Token, shared_ptr<type::Type>> tok_type_pair) {
   auto [tok, type] = tok_type_pair;
   auto symbol = create_symbol(tok, type, get_last_offset() + 8);
 
