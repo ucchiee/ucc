@@ -50,9 +50,14 @@ struct Node {
 };
 
 std::unique_ptr<ast::Node> create_node(
+    ast::NodeKind kind, std::shared_ptr<type::Type> type,
+    std::unique_ptr<ast::Node> first = nullptr,
+    std::unique_ptr<ast::Node> second = nullptr);
+std::unique_ptr<ast::Node> create_node(
     ast::NodeKind kind, std::unique_ptr<ast::Node> first = nullptr,
     std::unique_ptr<ast::Node> second = nullptr);
-std::unique_ptr<Node> create_num(int num);
+std::unique_ptr<Node> create_num(int num,
+                                 std::shared_ptr<type::Type> type = nullptr);
 
 void dump_ast(std::unique_ptr<ast::Node> node, int depth);
 

@@ -6,9 +6,13 @@ using namespace std;
 
 namespace type {
 
-Type::Type() { m_next = NULL; }
+Type::Type() { m_next = nullptr; }
 
 Type::~Type() {}
+
+bool Type::is_kind_of(Kind kind) { return m_kind == kind; }
+
+bool Type::is_ptr() { return is_kind_of(Kind::type_ptr); }
 
 shared_ptr<Type> create_type(Kind kind, int size) {
   auto type = make_shared<Type>();
@@ -40,36 +44,29 @@ shared_ptr<Type> add_ptr(shared_ptr<Type> type) {
 bool operator==(Type type1, Type type2) {
   if (type1.m_kind == Kind::type_func && type2.m_kind == Kind::type_func) {
     // function type
-    if (operator==(type1.m_ret_type, type2.m_ret_type)) {
-      return operator==(type1.m_args_type, type2.m_args_type);
-    } else {
+    if (!operator==(*type1.m_ret_type, *type2.m_ret_type)) {
       return false;
+      return operator==(type1.m_args_type, type2.m_args_type);
+    } else if (type1.m_args_type.size() != type2.m_args_type.size()) {
+      return false;
+    } else {
+      for (int i = 0; i < type1.m_args_type.size(); i++) {
+        if (!operator==(type1.m_args_type.at(i), type2.m_args_type.at(i))) {
+          return false;
+        }
+      }
+      return true;
     }
-  } else if (type1.m_next == NULL && type2.m_next == NULL) {
+  } else if (type1.m_next == nullptr && type2.m_next == nullptr) {
     // primitive
     return type1.m_kind == type2.m_kind;
-  } else if (type1.m_next != NULL && type2.m_next != NULL) {
+  } else if (type1.m_next != nullptr && type2.m_next != nullptr) {
     // pointer
-    return operator==(type1.m_next, type2.m_next);
+    return operator==(*type1.m_next, *type2.m_next);
   }
   return false;
 }
 
-bool operator==(shared_ptr<Type> type1, shared_ptr<Type> type2) {
-  return operator==(*type1, *type2);
-}
-
-bool operator==(vector<shared_ptr<Type>> vec_type1,
-                vector<shared_ptr<Type>> vec_type2) {
-  if (vec_type1.size() != vec_type2.size()) {
-    return false;
-  }
-  for (int i = 0; i < vec_type1.size(); i++) {
-    if (!operator==(vec_type1.at(i), vec_type2.at(i))) {
-      return false;
-    }
-  }
-  return true;
-}
+bool operator!=(Type type1, Type type2) { return !operator==(type1, type2); }
 
 }  // namespace type

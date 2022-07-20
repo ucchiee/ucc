@@ -81,7 +81,24 @@ shared_ptr<Symbol> SymTable::register_local(
   return symbol;
 }
 
+shared_ptr<Symbol> SymTable::find_global(const lexer::Token& token) {
+  return find_symbol(m_global, token);
+}
+
+shared_ptr<Symbol> SymTable::register_global(
+    pair<lexer::Token, shared_ptr<type::Type>> tok_type_pair) {
+  auto [tok, type] = tok_type_pair;
+  auto symbol = create_symbol(tok, type, -1);
+
+  auto new_global = add_symbol(global_current(), symbol);
+  m_global = new_global;
+
+  return symbol;
+}
+
 shared_ptr<Symbol> SymTable::local_current() { return m_local.back(); }
+
+shared_ptr<Symbol> SymTable::global_current() { return m_global; }
 
 void SymTable::begin_block() { m_local.push_back(nullptr); }
 
