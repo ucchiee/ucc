@@ -12,11 +12,13 @@ Symbol::Symbol() { next = nullptr; }
 Symbol::~Symbol() {}
 
 shared_ptr<Symbol> create_symbol(const lexer::Token& tok,
-                                 shared_ptr<type::Type> type, int offset) {
+                                 shared_ptr<type::Type> type, int offset,
+                                 bool is_defined) {
   auto symbol = make_shared<Symbol>();
   symbol->tok = tok;
   symbol->offset = offset;
   symbol->type = type;
+  symbol->is_defined = is_defined;
   return symbol;
 }
 
@@ -86,9 +88,9 @@ shared_ptr<Symbol> SymTable::find_global(const lexer::Token& token) {
 }
 
 shared_ptr<Symbol> SymTable::register_global(
-    pair<lexer::Token, shared_ptr<type::Type>> tok_type_pair) {
+    pair<lexer::Token, shared_ptr<type::Type>> tok_type_pair, bool is_defined) {
   auto [tok, type] = tok_type_pair;
-  auto symbol = create_symbol(tok, type, -1);
+  auto symbol = create_symbol(tok, type, -1, is_defined);
 
   auto new_global = add_symbol(global_current(), symbol);
   m_global = new_global;

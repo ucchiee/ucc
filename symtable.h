@@ -20,14 +20,15 @@ class Symbol {
 
   lexer::Token tok;
   std::shared_ptr<type::Type> type;
-  int offset;  // local
+  int offset;               // local
+  bool is_defined = false;  // function
 
  private:
 };
 
 std::shared_ptr<Symbol> create_symbol(const lexer::Token &tok,
                                       std::shared_ptr<type::Type> type,
-                                      int offset);
+                                      int offset, bool is_defined = false);
 std::shared_ptr<Symbol> add_symbol(std::shared_ptr<Symbol>,
                                    std::shared_ptr<Symbol>);
 std::shared_ptr<Symbol> find_symbol(std::shared_ptr<Symbol> symbol,
@@ -50,7 +51,8 @@ class SymTable {
       std::pair<lexer::Token, std::shared_ptr<type::Type>>);
   std::shared_ptr<symbol::Symbol> find_global(const lexer::Token &token);
   std::shared_ptr<symbol::Symbol> register_global(
-      std::pair<lexer::Token, std::shared_ptr<type::Type>>);
+      std::pair<lexer::Token, std::shared_ptr<type::Type>>,
+      bool is_defined = false);
   std::shared_ptr<Symbol> local_current();
   std::shared_ptr<Symbol> global_current();
   void begin_block();

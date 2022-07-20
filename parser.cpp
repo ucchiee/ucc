@@ -76,22 +76,36 @@ unique_ptr<Node> Parser::funcdef() {
   // register and check(TODO) function definition
   node->type = func_type;
   auto symbol = symtable.find_global(tok);
-  if (symbol) {
-    m_ts.error("Already defined function");
+
+  if (m_ts.consume(';')) {
+    // function prototype
+    symtable.register_global({tok, func_type}, false);
+    // change node type
+    node->kind = NodeKind::nd_funcdecl;
+  } else {
+    // function definition
+    // check whether this is already definded
+    if (symbol) {
+      if (symbol->is_defined) {
+        m_ts.error("Already defined function");
+      } else if (symbol->type != func_type) {
+        m_ts.error("Function type is not as same as declared");
+      }
+    }
+
+    symtable.register_global({tok, func_type}, true);
+    auto node_compound = compound_stmt();
+
+    // TODO : this should be changed, a little bit ugly
+    node->total_size = symbol::size(symtable.local_current()) * 8;
+
+    // assign lval_vec to that of compound_stmt
+    node_compound->local = symtable.local_current();
+
+    node->add_child(move(node_compound));
   }
-  symtable.register_global({tok, func_type});
 
-  auto node_compound = compound_stmt();
-
-  // TODO : this should be changed, a little bit ugly
-  node->total_size = symbol::size(symtable.local_current()) * 8;
-
-  // assign lval_vec to that of compound_stmt
-  node_compound->local = symtable.local_current();
   symtable.end_funcdef();
-
-  node->add_child(move(node_compound));
-
   return node;
 }
 
@@ -346,16 +360,25 @@ unique_ptr<Node> Parser::primary() {
     if (m_ts.consume('(')) {
       // funcall, ident '(' ')'
       node = create_node(NodeKind::nd_funcall);
+
       // check function is declared
       auto symbol = symtable.find_global(tok);
-      if (!symbol) {
-        m_ts.error("Not declared function");
+      if (symbol) {
+        node->type = symbol->type->m_ret_type;
+      } else {
+        // implicit declaration of function
+        node->type = type::create_int();
       }
-      node->type = symbol->type->m_ret_type;
       node->tok = tok;
+
+      size_t i = 0;
       while (!m_ts.consume(')')) {
-        // TODO : type check of arguments
-        node->add_child(move(expr()));
+        // type check of arguments
+        auto arg_node = expr();
+        if (symbol) {
+          check_type(arg_node->type, symbol->type->m_args_type.at(i++));
+        }
+        node->add_child(move(arg_node));
         m_ts.consume(',');
       }
       if (node->child_vec.size() > 6) {
