@@ -66,5 +66,6 @@ assert 5 'int main() {int a; int b; a = 0; {int a;a = 10; b = a / 2;} return a +
 assert 15 'int main() {int a; int b; a = 0; {int a;a = 10; b = a / 2; return a + b;} return a + b;}'
 assert 3 'int main() {int a;int *b;a=0;b=&a;*b=3;return a;}'
 assert 23 'int foo(); int main() {return foo();}' 'int foo() {return 23;}'
+assert 2 'int main() {int a;int *b;int c;a=0;b=&a;*b=3;c=-*b;return 5+c;}'
 
 echo OK

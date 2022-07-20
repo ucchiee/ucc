@@ -325,9 +325,9 @@ unique_ptr<Node> Parser::mul() {
 
 unique_ptr<Node> Parser::unary() {
   if (m_ts.consume('+')) {
-    return primary();
+    return unary();
   } else if (m_ts.consume('-')) {
-    auto node_r = primary();
+    auto node_r = unary();
     auto node_l = create_num(0, node_r->type);
     auto type = node_r->type;
     return create_node(NodeKind::nd_sub, type, move(node_l), move(node_r));
