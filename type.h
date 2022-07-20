@@ -1,5 +1,6 @@
 #pragma once
 #include <list>
+#include <memory>
 
 namespace type {
 
@@ -17,16 +18,24 @@ class Type {
   Type &operator=(const Type &) = default;
   ~Type();
 
-  void add_int();
-  void add_ptr();
+  friend std::shared_ptr<Type> create_type(Kind, int);
+  friend bool operator==(Type, Type);
+  friend bool operator==(std::shared_ptr<Type>, std::shared_ptr<Type>);
 
-  const std::list<Kind> &get_type_list();
+  std::shared_ptr<Type> next;
 
  private:
-  void add_type(Kind kind);
-  std::list<Kind> m_type_list;
+  Kind kind;
+  int size;
 };
 
+std::shared_ptr<Type> create_type(Kind, int);
+
+std::shared_ptr<Type> add_type(std::shared_ptr<Type> type, Kind kind, int size);
+std::shared_ptr<Type> add_int(std::shared_ptr<Type> type);
+std::shared_ptr<Type> add_ptr(std::shared_ptr<Type> type);
+
 bool operator==(Type, Type);
+bool operator==(std::shared_ptr<Type>, std::shared_ptr<Type>);
 
 }  // namespace type

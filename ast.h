@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "symtable.h"
+#include "type.h"
 
 namespace ast {
 enum class NodeKind {
@@ -38,9 +39,10 @@ struct Node {
   NodeKind kind;
   std::vector<std::unique_ptr<Node>> child_vec;
   int val;
-  int offset;        // variable
-  lexer::Token tok;  // funcall, funcdef, ident
-  int total_size;    // funcdef
+  std::shared_ptr<type::Type> type;  // for decl and expr
+  int offset;                        // variable
+  lexer::Token tok;                  // funcall, funcdef, ident
+  int total_size;                    // funcdef
   int arg_idx;
   std::vector<std::shared_ptr<symbol::LVal>> local;
 
