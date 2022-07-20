@@ -41,7 +41,7 @@ shared_ptr<Type> add_ptr(shared_ptr<Type> type) {
   return add_type(type, Kind::type_ptr, 8);
 }
 
-bool operator==(Type type1, Type type2) {
+bool operator==(const Type &type1, const Type &type2) {
   if (type1.m_kind == Kind::type_func && type2.m_kind == Kind::type_func) {
     // function type
     if (!operator==(*type1.m_ret_type, *type2.m_ret_type)) {
@@ -67,6 +67,8 @@ bool operator==(Type type1, Type type2) {
   return false;
 }
 
-bool operator!=(Type type1, Type type2) { return !operator==(type1, type2); }
+bool operator!=(const Type &type1, const Type &type2) {
+  return !operator==(type1, type2);
+}
 
 }  // namespace type
