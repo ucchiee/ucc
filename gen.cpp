@@ -28,7 +28,7 @@ void codegen::gen(unique_ptr<ast::Node> node) {
     case ast::NodeKind::nd_num:
       cout << "  push " << node->val << '\n';
       return;
-    case ast::NodeKind::nd_param_decl: {
+    case ast::NodeKind::nd_arg_decl: {
       int arg_idx = node->arg_idx;
       gen_lval(move(node));
       // addr of lval is on the stack top
@@ -258,7 +258,7 @@ void codegen::gen_lval(unique_ptr<ast::Node> node) {
       gen(move(node->child_vec.at(0)));
       return;
     case ast::NodeKind::nd_lval:
-    case ast::NodeKind::nd_param_decl:
+    case ast::NodeKind::nd_arg_decl:
       cout << "  lea rax, [rbp - " << node->offset << "]\n";
       cout << "  push rax\n";
       return;

@@ -6,7 +6,7 @@ Ucc is a (subset of) C compiler, now able to handle this grammar:
 program       = funcdef*
 type_specifier= "int"
 declarator    = ident | "*" declarator
-funcdef       = ident "(" param_decl ("," param_decl)* ")" compound_stmt
+funcdef       = param_decl "(" param_decl ("," param_decl)* ")" compound_stmt
 param_decl    = type_specifier declarator
 stmt          = expr ";"
               | compound_stmt
@@ -14,7 +14,7 @@ stmt          = expr ";"
               | "while" "(" expr ")" stmt
               | "for" "(" expr? ";" expr? ";" expr? ")" stmt
               | "return" expr ";"
-compound_stmt = "{" ( type_specifier declarator ";")* stmt* "}"
+compound_stmt = "{" ( param_decl ";")* stmt* "}"
 expr          = assign
 assign        = equality ("=" assign | "+=" assign)?
 equality      = relational ("==" relational | "!=" relational)*

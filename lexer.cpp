@@ -11,35 +11,47 @@
 
 using namespace std;
 
-lexer::TokenStream::TokenStream(char* program)
+namespace lexer {
+
+bool operator==(Token tok1, Token tok2) {
+  if (tok1.kind != tok2.kind) {
+    return false;
+  } else if (memcmp(tok1.lexeme_string, tok2.lexeme_string, tok1.len)) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+TokenStream::TokenStream(char* program)
     : m_program{program}, m_current_token_idx{0} {
   tokenize();
 }
 
-bool lexer::TokenStream::consume(lexer::Kind kind) {
+bool TokenStream::consume(Kind kind) {
   if (current().kind != kind) {
     return false;
   }
   m_current_token_idx++;
   return true;
 }
-bool lexer::TokenStream::consume(char kind) {
-  if (current().kind != lexer::Kind(kind)) {
+bool TokenStream::consume(char kind) {
+  if (current().kind != Kind(kind)) {
     return false;
   }
   m_current_token_idx++;
   return true;
 }
 
-lexer::Token lexer::TokenStream::consume_ident() {
-  if (current().kind != lexer::Kind::tk_id) {
-    return {lexer::Kind::end};
+Token TokenStream::consume_ident() {
+  if (current().kind != Kind::tk_id) {
+    return {Kind::end};
   }
   return m_token_vec[m_current_token_idx++];
 }
 
-void lexer::TokenStream::expect(char op) {
-  if (current().kind != lexer::Kind(op)) {
+void TokenStream::expect(char op) {
+  if (current().kind != Kind(op)) {
     stringstream ss;
     ss << op << "is expected" << endl;
     error(ss.str());
@@ -47,8 +59,8 @@ void lexer::TokenStream::expect(char op) {
   m_current_token_idx++;
 }
 
-int lexer::TokenStream::expect_number() {
-  if (current().kind != lexer::Kind::tk_int) {
+int TokenStream::expect_number() {
+  if (current().kind != Kind::tk_int) {
     error("number is expected");
   }
   int val = current().lexeme_number;
@@ -56,32 +68,32 @@ int lexer::TokenStream::expect_number() {
   return val;
 }
 
-lexer::Token lexer::TokenStream::expect_ident() {
-  if (current().kind != lexer::Kind::tk_id) {
+Token TokenStream::expect_ident() {
+  if (current().kind != Kind::tk_id) {
     error("ident is expected");
   }
   return m_token_vec[m_current_token_idx++];
 }
 
-void lexer::TokenStream::push_back(Kind kind) {
+void TokenStream::push_back(Kind kind) {
   m_current_token_idx--;
   if (current().kind != kind) {
     error("failed to push_back");
   }
 }
-void lexer::TokenStream::push_back(char kind) {
+void TokenStream::push_back(char kind) {
   m_current_token_idx--;
-  if (current().kind != lexer::Kind(kind)) {
+  if (current().kind != Kind(kind)) {
     error("failed to push_back");
   }
 }
 
-bool lexer::TokenStream::at_eof() {
+bool TokenStream::at_eof() {
   // do not forget Kind::end
   return !(m_current_token_idx < m_token_vec.size() - 1);
 }
 
-void lexer::TokenStream::debug_current() {
+void TokenStream::debug_current() {
   string str;
   str = {current().lexeme_string, (unsigned long)current().len};
   cerr << "kind: " << int(current().kind) << endl;
@@ -89,7 +101,7 @@ void lexer::TokenStream::debug_current() {
   cerr << "lexeme_number: " << current().lexeme_number << endl;
 }
 
-void lexer::TokenStream::dump() {
+void TokenStream::dump() {
   int backup = m_current_token_idx;
   string str;
   m_current_token_idx = 0;
@@ -101,7 +113,7 @@ void lexer::TokenStream::dump() {
   m_current_token_idx = backup;
 }
 
-void lexer::TokenStream::tokenize() {
+void TokenStream::tokenize() {
   char* p;
   Token token;
 
@@ -228,11 +240,11 @@ void lexer::TokenStream::tokenize() {
   }
 }
 
-const lexer::Token& lexer::TokenStream::current() {
+const Token& TokenStream::current() {
   return m_token_vec.at(m_current_token_idx);
 }
 
-void lexer::TokenStream::error(string msg) {
+void TokenStream::error(string msg) {
   // determine num of spaces
   int loc = current().lexeme_string - m_program;
   string space = "";
@@ -243,3 +255,4 @@ void lexer::TokenStream::error(string msg) {
   cerr << space << "^ " << msg << endl;
   exit(1);
 }
+}  // namespace lexer

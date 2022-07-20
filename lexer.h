@@ -42,8 +42,9 @@ struct Token {
   char *lexeme_string;
   int len;
   int lexeme_number;
-  std::shared_ptr<type::Type> type;
 };
+
+bool operator==(Token tok1, Token tok2);
 
 class TokenStream {
  public:
