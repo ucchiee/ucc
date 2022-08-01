@@ -229,7 +229,7 @@ unique_ptr<Node> Parser::assign() {
     auto type = node->type;
     return create_node(NodeKind::nd_add_into, type, move(node), move(node_r));
   } else {
-    return move(node);
+    return node;
   }
 }
 
@@ -248,7 +248,7 @@ unique_ptr<Node> Parser::equality() {
       node = create_node(NodeKind::nd_ne, type::create_int(), move(node),
                          move(node_r));
     } else {
-      return move(node);
+      return node;
     }
   }
 }
@@ -278,7 +278,7 @@ unique_ptr<Node> Parser::relational() {
       auto type = node->type;
       node = create_node(NodeKind::nd_le, type, move(node_l), move(node));
     } else {
-      return move(node);
+      return node;
     }
   }
 }
@@ -298,7 +298,7 @@ unique_ptr<Node> Parser::add() {
       auto type = node->type;
       node = create_node(NodeKind::nd_sub, type, move(node), move(node_r));
     } else {
-      return move(node);
+      return node;
     }
   }
 }
@@ -318,7 +318,7 @@ unique_ptr<Node> Parser::mul() {
       auto type = node->type;
       node = create_node(NodeKind::nd_div, type, move(node), move(node_r));
     } else {
-      return move(node);
+      return node;
     }
   }
 }
@@ -401,7 +401,7 @@ unique_ptr<Node> Parser::primary() {
 
   // num
   int val = m_ts.expect_number();
-  return move(create_num(val));
+  return create_num(val);
 }
 
 void Parser::check_type(std::shared_ptr<type::Type> type1,
