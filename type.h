@@ -22,6 +22,7 @@ class Type {
 
   bool is_kind_of(Kind);
   bool is_ptr();
+  int get_size();
 
   friend std::shared_ptr<Type> create_type(Kind, int);
   friend bool operator==(const Type &, const Type &);

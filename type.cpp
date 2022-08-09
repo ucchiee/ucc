@@ -14,6 +14,8 @@ bool Type::is_kind_of(Kind kind) { return m_kind == kind; }
 
 bool Type::is_ptr() { return is_kind_of(Kind::type_ptr); }
 
+int Type::get_size() { return m_size; }
+
 shared_ptr<Type> create_type(Kind kind, int size) {
   auto type = make_shared<Type>();
   type->m_kind = kind;

@@ -88,7 +88,7 @@ unique_ptr<Node> Parser::funcdef() {
     if (symbol) {
       if (symbol->is_defined) {
         m_ts.error("Already defined function");
-      } else if (symbol->type != func_type) {
+      } else if (*symbol->type != *func_type) {
         m_ts.error("Function type is not as same as declared");
       }
     }
@@ -220,13 +220,13 @@ unique_ptr<Node> Parser::assign() {
   auto node = equality();
   if (m_ts.consume('=')) {
     auto node_r = assign();
-    check_type(node->type, node_r->type);
-    auto type = node->type;
+    auto [type_l, type_r] = convert_type(node->type, node_r->type);
+    auto type = check_and_merge_type(type_l, type_r, (lexer::Kind)'=');
     return create_node(NodeKind::nd_assign, type, move(node), move(node_r));
   } else if (m_ts.consume(lexer::Kind::op_add_into)) {
     auto node_r = assign();
-    check_type(node->type, node_r->type);
-    auto type = node->type;
+    auto [type_l, type_r] = convert_type(node->type, node_r->type);
+    auto type = check_and_merge_type(type_l, type_r, lexer::Kind::op_add_into);
     return create_node(NodeKind::nd_add_into, type, move(node), move(node_r));
   } else {
     return node;
@@ -239,12 +239,14 @@ unique_ptr<Node> Parser::equality() {
   for (;;) {
     if (m_ts.consume(lexer::Kind::op_eq)) {
       auto node_r = relational();
-      check_type(node->type, node_r->type);
+      auto [type_l, type_r] = convert_type(node->type, node_r->type);
+      check_and_merge_type(type_l, type_r, lexer::Kind::op_eq);
       node = create_node(NodeKind::nd_eq, type::create_int(), move(node),
                          move(node_r));
     } else if (m_ts.consume(lexer::Kind::op_ne)) {
       auto node_r = relational();
-      check_type(node->type, node_r->type);
+      auto [type_l, type_r] = convert_type(node->type, node_r->type);
+      check_and_merge_type(type_l, type_r, lexer::Kind::op_ne);
       node = create_node(NodeKind::nd_ne, type::create_int(), move(node),
                          move(node_r));
     } else {
@@ -259,23 +261,23 @@ unique_ptr<Node> Parser::relational() {
   for (;;) {
     if (m_ts.consume(lexer::Kind::op_lt)) {
       auto node_r = add();
-      check_type(node->type, node_r->type);
-      auto type = node->type;
+      auto [type_l, type_r] = convert_type(node->type, node_r->type);
+      auto type = check_and_merge_type(type_l, type_r, lexer::Kind::op_lt);
       node = create_node(NodeKind::nd_lt, type, move(node), move(node_r));
     } else if (m_ts.consume(lexer::Kind::op_le)) {
       auto node_r = add();
-      check_type(node->type, node_r->type);
-      auto type = node->type;
+      auto [type_l, type_r] = convert_type(node->type, node_r->type);
+      auto type = check_and_merge_type(type_l, type_r, lexer::Kind::op_le);
       node = create_node(NodeKind::nd_le, type, move(node), move(node_r));
     } else if (m_ts.consume(lexer::Kind::op_gt)) {
       auto node_l = add();
-      check_type(node_l->type, node->type);
-      auto type = node->type;
+      auto [type_l, type_r] = convert_type(node_l->type, node->type);
+      auto type = check_and_merge_type(type_l, type_r, lexer::Kind::op_gt);
       node = create_node(NodeKind::nd_lt, type, move(node_l), move(node));
     } else if (m_ts.consume(lexer::Kind::op_ge)) {
       auto node_l = add();
-      check_type(node_l->type, node->type);
-      auto type = node->type;
+      auto [type_l, type_r] = convert_type(node_l->type, node->type);
+      auto type = check_and_merge_type(type_l, type_r, lexer::Kind::op_ge);
       node = create_node(NodeKind::nd_le, type, move(node_l), move(node));
     } else {
       return node;
@@ -289,13 +291,21 @@ unique_ptr<Node> Parser::add() {
   for (;;) {
     if (m_ts.consume('+')) {
       auto node_r = mul();
-      check_type(node->type, node_r->type);
-      auto type = node->type;
+      auto [type_l, type_r] = convert_type(node->type, node_r->type);
+      auto type = check_and_merge_type(type_l, type_r, lexer::Kind('+'));
+      if (type_l->is_ptr()) {
+        node_r->val *= type_l->m_next->get_size();
+      } else if (type_r->is_ptr()) {
+        node->val *= type_r->m_next->get_size();
+      }
       node = create_node(NodeKind::nd_add, type, move(node), move(node_r));
     } else if (m_ts.consume('-')) {
       auto node_r = mul();
-      check_type(node->type, node_r->type);
-      auto type = node->type;
+      auto [type_l, type_r] = convert_type(node->type, node_r->type);
+      auto type = check_and_merge_type(type_l, type_r, lexer::Kind('-'));
+      if (type_l->is_ptr()) {
+        node_r->val *= type_l->m_next->get_size();
+      }
       node = create_node(NodeKind::nd_sub, type, move(node), move(node_r));
     } else {
       return node;
@@ -309,13 +319,13 @@ unique_ptr<Node> Parser::mul() {
   for (;;) {
     if (m_ts.consume('*')) {
       auto node_r = unary();
-      check_type(node->type, node_r->type);
-      auto type = node->type;
+      auto [type_l, type_r] = convert_type(node->type, node_r->type);
+      auto type = check_and_merge_type(type_l, type_r, lexer::Kind('*'));
       node = create_node(NodeKind::nd_mul, type, move(node), move(node_r));
     } else if (m_ts.consume('/')) {
       auto node_r = unary();
-      check_type(node->type, node_r->type);
-      auto type = node->type;
+      auto [type_l, type_r] = convert_type(node->type, node_r->type);
+      auto type = check_and_merge_type(type_l, type_r, lexer::Kind('/'));
       node = create_node(NodeKind::nd_div, type, move(node), move(node_r));
     } else {
       return node;
@@ -376,7 +386,10 @@ unique_ptr<Node> Parser::primary() {
         // type check of arguments
         auto arg_node = expr();
         if (symbol) {
-          check_type(arg_node->type, symbol->type->m_args_type.at(i++));
+          // Only if function as already defined or declared.
+          if (*(arg_node->type) != *(symbol->type->m_args_type.at(i++))) {
+            m_ts.error("Argument is not the same as declared.");
+          }
         }
         node->add_child(move(arg_node));
         m_ts.consume(',');
@@ -404,10 +417,51 @@ unique_ptr<Node> Parser::primary() {
   return create_num(val);
 }
 
-void Parser::check_type(std::shared_ptr<type::Type> type1,
-                        std::shared_ptr<type::Type> type2) {
-  if (*type1 != *type2) {
-    m_ts.error("type is imcompatible");
+pair<shared_ptr<type::Type>, shared_ptr<type::Type>> Parser::convert_type(
+    shared_ptr<type::Type> type_l, shared_ptr<type::Type> type_r) {
+  return {type_l, type_r};
+}
+
+shared_ptr<type::Type> Parser::check_and_merge_type(
+    shared_ptr<type::Type> type1, shared_ptr<type::Type> type2,
+    lexer::Kind op) {
+  if (type1->is_ptr() && type2->is_ptr()) {
+    if (op == (lexer::Kind)'-') {
+      // return type::create_int();
+      m_ts.error("This operation is not supported yet.");
+    } else if ((int)op == '=') {
+      return type1;
+    } else {
+      m_ts.error("type is incompatible");
+    }
+
+  } else if (type1->is_ptr()) {
+    if (type2->is_kind_of(type::Kind::type_func)) {
+      m_ts.error("type is incompatible");
+    }
+    if (op == (lexer::Kind)'+' || op == (lexer::Kind)'-') {
+      return type1;
+    } else {
+      m_ts.error("type is incompatible");
+    }
+
+  } else if (type2->is_ptr()) {
+    if (type1->is_kind_of(type::Kind::type_func)) {
+      m_ts.error("type is incompatible");
+    }
+    if (op == (lexer::Kind)'+') {
+      return type2;
+    } else {
+      m_ts.error("type is incompatible");
+    }
+
+  } else {
+    if (*type1 == *type2) {
+      return type1;
+    } else {
+      m_ts.error("type is incompatible");
+    }
   }
+  return type1;
 }
 }  // namespace parser
