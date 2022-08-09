@@ -23,6 +23,7 @@ add           = mul ("+" mul | "-" mul)*
 mul           = unary ("*" unary | "/" unary)*
 unary         = ("+" | "-") unary
               | ("*" | "&") unary
+              | "sizeof" add
               | primary
 primary       = num
               | "(" expr ")"
