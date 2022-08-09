@@ -67,15 +67,11 @@ assert 15 'int main() {int a; int b; a = 0; {int a;a = 10; b = a / 2; return a +
 assert 3 'int main() {int a;int *b;a=0;b=&a;*b=3;return a;}'
 assert 23 'int foo(); int main() {return foo();}' 'int foo() {return 23;}'
 assert 2 'int main() {int a;int *b;int c;a=0;b=&a;*b=3;c=-*b;return 5+c;}'
-assert 2 'int main() {int *p; int *q; myalloc(&p); q = p + 2; return *q;}' '
-#include <stdlib.h>
-void myalloc(int** ptr) {
-  *ptr = (int*)malloc(sizeof(int) * 4);
-  *(*ptr + 0) = 0;
-  *(*ptr + 1) = 1;
-  *(*ptr + 2) = 2;
-  *(*ptr + 3) = 3;
-}
-'
+assert 2 'int main() {int *p; int *q; myalloc(&p); q = p + 2; return *q;}' '#include <stdlib.h>
+void myalloc(int** ptr) { *ptr = (int*)malloc(sizeof(int) * 4); *(*ptr + 0) = 0; *(*ptr + 1) = 1; *(*ptr + 2) = 2; *(*ptr + 3) = 3; } '
+assert 1 'int main() {int *p; int *q; myalloc(&p);q=p+2; q=q-1; return *q;}' ' #include <stdlib.h>
+void myalloc(int** ptr) { *ptr = (int*)malloc(sizeof(int) * 4); *(*ptr + 0) = 0; *(*ptr + 1) = 1; *(*ptr + 2) = 2; *(*ptr + 3) = 3; } '
+assert 2 'int main() {int *p; int *q; myalloc(&p);q=2+p; return *q;}' ' #include <stdlib.h>
+void myalloc(int** ptr) { *ptr = (int*)malloc(sizeof(int) * 4); *(*ptr + 0) = 0; *(*ptr + 1) = 1; *(*ptr + 2) = 2; *(*ptr + 3) = 3; } '
 
 echo OK
