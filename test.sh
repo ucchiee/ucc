@@ -73,5 +73,10 @@ assert 1 'int main() {int *p; int *q; myalloc(&p);q=p+2; q=q-1; return *q;}' ' #
 void myalloc(int** ptr) { *ptr = (int*)malloc(sizeof(int) * 4); *(*ptr + 0) = 0; *(*ptr + 1) = 1; *(*ptr + 2) = 2; *(*ptr + 3) = 3; } '
 assert 2 'int main() {int *p; int *q; myalloc(&p);q=2+p; return *q;}' ' #include <stdlib.h>
 void myalloc(int** ptr) { *ptr = (int*)malloc(sizeof(int) * 4); *(*ptr + 0) = 0; *(*ptr + 1) = 1; *(*ptr + 2) = 2; *(*ptr + 3) = 3; } '
+assert 4 'int main() {int a; return sizeof(a);}'
+assert 8 'int main() {int *a; return sizeof(a);}'
+assert 8 'int main() {int *a; return sizeof(a+1);}'
+assert 4 'int main() {int *a; return sizeof(*a);}'
+assert 4 'int main() {int *a; return sizeof(sizeof(a+1));}'
 
 echo OK

@@ -25,6 +25,7 @@ enum class Kind : int {
   kw_for,
   kw_while,
   kw_return,
+  kw_sizeof,
   // op
   op_eq,        // ==
   op_ne,        // !=
