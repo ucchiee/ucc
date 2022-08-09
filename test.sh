@@ -1,25 +1,25 @@
 #!/bin/bash
 assert() {
-  expected="$1"
-  input="$2"
+	expected="$1"
+	input="$2"
 
-  ./build/ucc "$input" > tmp.s
-  if [ "$#" = 3 ]; then
-    echo "$3" > tmp_lib.c
-    cc -c tmp_lib.c
-    cc -o tmp tmp.s tmp_lib.o
-  else
-    cc -o tmp tmp.s
-  fi
-  ./tmp
-  actual="$?"
+	./build/ucc "$input" >tmp.s
+	if [ "$#" = 3 ]; then
+		echo "$3" >tmp_lib.c
+		cc -c tmp_lib.c
+		cc -o tmp tmp.s tmp_lib.o
+	else
+		cc -o tmp tmp.s
+	fi
+	./tmp
+	actual="$?"
 
-  if [ "$actual" = "$expected" ]; then
-    echo "$input => $actual"
-  else
-    echo "$input => $expected expected, but got $actual"
-    exit 1
-  fi
+	if [ "$actual" = "$expected" ]; then
+		echo "$input => $actual"
+	else
+		echo "$input => $expected expected, but got $actual"
+		exit 1
+	fi
 }
 
 assert 0 'int main() {0;}'
@@ -67,5 +67,15 @@ assert 15 'int main() {int a; int b; a = 0; {int a;a = 10; b = a / 2; return a +
 assert 3 'int main() {int a;int *b;a=0;b=&a;*b=3;return a;}'
 assert 23 'int foo(); int main() {return foo();}' 'int foo() {return 23;}'
 assert 2 'int main() {int a;int *b;int c;a=0;b=&a;*b=3;c=-*b;return 5+c;}'
+assert 2 'int main() {int *p; int *q; myalloc(&p); q = p + 2; return *q;}' '
+#include <stdlib.h>
+void myalloc(int** ptr) {
+  *ptr = (int*)malloc(sizeof(int) * 4);
+  *(*ptr + 0) = 0;
+  *(*ptr + 1) = 1;
+  *(*ptr + 2) = 2;
+  *(*ptr + 3) = 3;
+}
+'
 
 echo OK
