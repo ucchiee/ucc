@@ -38,7 +38,11 @@ class Parser {
   std::unique_ptr<ast::Node> unary();
   std::unique_ptr<ast::Node> primary();
 
-  void check_type(std::shared_ptr<type::Type>, std::shared_ptr<type::Type>);
+  std::pair<std::shared_ptr<type::Type>, std::shared_ptr<type::Type>>
+      convert_type(std::shared_ptr<type::Type>, std::shared_ptr<type::Type>);
+  std::shared_ptr<type::Type> check_and_merge_type(
+      std::shared_ptr<type::Type>, std::shared_ptr<type::Type>,
+      lexer::Kind op_kind = lexer::Kind::end);
 
  private:
   lexer::TokenStream &m_ts;
