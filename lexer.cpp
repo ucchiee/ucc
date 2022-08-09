@@ -227,6 +227,8 @@ void TokenStream::tokenize() {
             token = {Kind::kw_for, tmp, len};
           } else if (len == 3 && memcmp(tmp, "int", 3) == 0) {
             token = {Kind::kw_int, tmp, len};
+          } else if (len == 6 && memcmp(tmp, "sizeof", 6) == 0) {
+            token = {Kind::kw_sizeof, tmp, len};
           } else {
             token = {Kind::tk_id, tmp, len};
           }

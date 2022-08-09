@@ -352,6 +352,11 @@ unique_ptr<Node> Parser::unary() {
     auto node = unary();
     auto type = node->type;
     return create_node(NodeKind::nd_addr, type::add_ptr(type), move(node));
+  } else if (m_ts.consume(lexer::Kind::kw_sizeof)) {
+    bool has_p = m_ts.consume('(');
+    auto node = add();
+    if (has_p) m_ts.expect(')');
+    return ast::create_num(node->type->get_size());
   }
   return primary();
 }
