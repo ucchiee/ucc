@@ -172,14 +172,15 @@ void gen(unique_ptr<ast::Node> node) {
       }
       // function call
       string funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
-      cout << "  call " << funcname << '\n';
+      cout << "  call _" << funcname << '\n';
       cout << "  push rax\n";
       return;
     }
     case ast::NodeKind::nd_funcdef: {
       string funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
-      cout << ".globl " << funcname << '\n';
-      cout << funcname << ":\n";
+      cout << ".globl _" << funcname << '\n';
+      cout << ".p2align 4, 0x90\n";
+      cout << "_" << funcname << ":\n";
 
       // prologe
       cout << "  push rbp\n";
@@ -230,22 +231,22 @@ void gen(unique_ptr<ast::Node> node) {
     case ast::NodeKind::nd_eq:
       cout << "  cmp rax, rdi\n";
       cout << "  sete al\n";
-      cout << "  movzb rax, al\n";
+      cout << "  movzx rax, al\n";
       break;
     case ast::NodeKind::nd_ne:
       cout << "  cmp rax, rdi\n";
       cout << "  setne al\n";
-      cout << "  movzb rax, al\n";
+      cout << "  movzx rax, al\n";
       break;
     case ast::NodeKind::nd_lt:
       cout << "  cmp rax, rdi\n";
       cout << "  setl al\n";
-      cout << "  movzb rax, al\n";
+      cout << "  movzx rax, al\n";
       break;
     case ast::NodeKind::nd_le:
       cout << "  cmp rax, rdi\n";
       cout << "  setle al\n";
-      cout << "  movzb rax, al\n";
+      cout << "  movzx rax, al\n";
       break;
     default:
       cerr << "unexpected NnodeKind\n";
