@@ -14,8 +14,18 @@ using fmt::print;
 
 namespace codegen {
 
+static int idx_size;
+static vector<string> regax = {"rax", "eax", "ax", "al"};
+static vector<string> regdi = {"rdi", "edi", "di", "dil"};
+static vector<string> regsi = {"rsi", "esi", "si", "sil"};
+static vector<string> regdx = {"rdx", "edx", "dx", "dl"};
+static vector<string> regcx = {"rcx", "ecx", "cx", "cl"};
+static vector<string> reg10 = {"r10", "r10d", "r10w", "r10b"};
+static vector<string> reg9 = {"r9", "r9d", "r9w", "r9b"};
+static vector<string> reg8 = {"r8", "r8d", "r8w", "r8b"};
+
 void gen(unique_ptr<ast::Node> node) {
-  vector<string> arg_regs{"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+  vector<vector<string>> arg_regs{regdi, regsi, regdx, regcx, reg8, reg9};
   switch (node->kind) {
     case ast::NodeKind::nd_program:
       for (auto&& child : node->child_vec) {
@@ -37,20 +47,20 @@ void gen(unique_ptr<ast::Node> node) {
       gen_lval(move(node));
       // addr of lval is on the stack top
       print("  pop rax\n");
-      print("  mov [rax], {}\n", arg_regs.at(arg_idx));
+      print("  mov [rax], {}\n", arg_regs[arg_idx][idx_size]);
       return;
     }
     case ast::NodeKind::nd_lval:
       gen_lval(move(node));
       // addr of lval is on the stack top
       print("  pop rax\n");
-      print("  mov rax, [rax]\n");
-      print("  push rax\n");
+      print("  mov {}, [rax]\n", regax[idx_size]);
+      print("  push rax\n");  // must be 64bit reg
       return;
     case ast::NodeKind::nd_deref:
       gen(move(node->child_vec.at(0)));
       print("  pop rax\n");  // addr of lval
-      print("  mov rax, [rax]\n");
+      print("  mov {}, [rax]\n", regax[idx_size]);
       print("  push rax\n");
       return;
     case ast::NodeKind::nd_addr:
@@ -62,7 +72,7 @@ void gen(unique_ptr<ast::Node> node) {
 
       print("  pop rdi\n");
       print("  pop rax\n");  // addr of lval
-      print("  mov [rax], rdi\n");
+      print("  mov [rax], {}\n", regdi[idx_size]);
       print("  push rdi\n");
       return;
     case ast::NodeKind::nd_add_into:
@@ -71,7 +81,7 @@ void gen(unique_ptr<ast::Node> node) {
 
       print("  pop rdi\n");
       print("  pop rax\n");  // addr of lval
-      print("  add [rax], rdi\n");
+      print("  add [rax], {}\n", regdi[idx_size]);
       print("  push [rax]\n");  // push final result
       return;
     case ast::NodeKind::nd_if: {
@@ -80,7 +90,7 @@ void gen(unique_ptr<ast::Node> node) {
       gen(move(node->child_vec.at(0)));
 
       print("  pop rax\n");
-      print("  cmp rax, 0\n");
+      print("  cmp {}, 0\n", regax[idx_size]);
       print("  je {}\n", if_end);
       // then
       gen(move(node->child_vec.at(1)));
@@ -94,7 +104,7 @@ void gen(unique_ptr<ast::Node> node) {
       gen(move(node->child_vec.at(0)));
 
       print("  pop rax\n");
-      print("  cmp rax, 0\n");
+      print("  cmp {}, 0\n", regax[idx_size]);
       print("  je {}\n", if_end);
       // then
       gen(move(node->child_vec.at(1)));
@@ -114,7 +124,7 @@ void gen(unique_ptr<ast::Node> node) {
       gen(move(node->child_vec.at(0)));
 
       print("  pop rax\n");
-      print("  cmp rax, 0\n");
+      print("  cmp {}, 0\n", regax[idx_size]);
       print("  je {}\n", while_end);
       // body
       gen(move(node->child_vec.at(1)));
@@ -136,7 +146,7 @@ void gen(unique_ptr<ast::Node> node) {
       if (have_expr) {
         gen(move(node->child_vec.at(1)));
         print("  pop rax\n");
-        print("  cmp rax, 0\n");
+        print("  cmp {}, 0\n", regax[idx_size]);
         print("  je {}\n", for_end);
       }
       // body
@@ -166,7 +176,7 @@ void gen(unique_ptr<ast::Node> node) {
       }
       // set args in the registers
       for (int i = 0; i < num_args; i++) {
-        print("  pop {}\n", arg_regs.at(i));
+        print("  pop {}\n", arg_regs.at(i)[0]);
       }
       // 16-alignment of rsp
       if (num_args % 2 != 0) {
@@ -217,37 +227,37 @@ void gen(unique_ptr<ast::Node> node) {
 
   switch (node->kind) {
     case ast::NodeKind::nd_add:
-      print("  add rax, rdi\n");
+      print("  add {}, {}\n", regax[idx_size], regdi[idx_size]);
       break;
     case ast::NodeKind::nd_sub:
-      print("  sub rax, rdi\n");
+      print("  sub {}, {}\n", regax[idx_size], regdi[idx_size]);
       break;
     case ast::NodeKind::nd_mul:
-      print("  imul rax, rdi\n");
+      print("  imul {}, {}\n", regax[idx_size], regdi[idx_size]);
       break;
     case ast::NodeKind::nd_div:
       print("  cqo\n");
-      print("  idiv rdi\n");
+      print("  idiv {}\n", regdi[idx_size]);
       break;
     case ast::NodeKind::nd_eq:
-      print("  cmp rax, rdi\n");
+      print("  cmp {}, {}\n", regax[idx_size], regdi[idx_size]);
       print("  sete al\n");
-      print("  movzb rax, al\n");
+      print("  movzb {}, al\n", regax[idx_size]);
       break;
     case ast::NodeKind::nd_ne:
-      print("  cmp rax, rdi\n");
+      print("  cmp {}, {}\n", regax[idx_size], regdi[idx_size]);
       print("  setne al\n");
-      print("  movzb rax, al\n");
+      print("  movzb {}, al\n", regax[idx_size]);
       break;
     case ast::NodeKind::nd_lt:
-      print("  cmp rax, rdi\n");
+      print("  cmp {}, {}\n", regax[idx_size], regdi[idx_size]);
       print("  setl al\n");
-      print("  movzb rax, al\n");
+      print("  movzb {}, al\n", regax[idx_size]);
       break;
     case ast::NodeKind::nd_le:
-      print("  cmp rax, rdi\n");
+      print("  cmp {}, {}\n", regax[idx_size], regdi[idx_size]);
       print("  setle al\n");
-      print("  movzb rax, al\n");
+      print("  movzb {}, al\n", regax[idx_size]);
       break;
     default:
       cerr << "unexpected NnodeKind\n";
@@ -265,6 +275,13 @@ void gen_lval(unique_ptr<ast::Node> node) {
       return;
     case ast::NodeKind::nd_lval:
     case ast::NodeKind::nd_arg_decl:
+      if (node->type->get_size() == 8) {
+        idx_size = 0;
+      } else if (node->type->get_size() == 4) {
+        idx_size = 1;
+      } else if (node->type->get_size() == 1) {
+        idx_size = 3;
+      }
       print("  lea rax, [rbp - {}]\n", node->offset);
       print("  push rax\n");
       return;
