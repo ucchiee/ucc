@@ -158,6 +158,8 @@ void TokenStream::tokenize() {
       case '&':
       case '(':
       case ')':
+      case '[':
+      case ']':
       case '{':
       case '}':
       case ';':

@@ -43,6 +43,11 @@ pair<lexer::Token, shared_ptr<type::Type>> Parser::declarator(
     type = type::add_ptr(type);
   }
   lexer::Token tok = m_ts.expect_ident();
+  if (m_ts.consume('[')) {
+    int arr_size = m_ts.expect_number();
+    type = type::create_arr(move(type), arr_size);
+    m_ts.expect(']');
+  }
   return {tok, type};
 }
 
@@ -294,9 +299,9 @@ unique_ptr<Node> Parser::add() {
       auto node_r = mul();
       auto [type_l, type_r] = convert_type(node->type, node_r->type);
       auto type = check_and_merge_type(type_l, type_r, lexer::Kind('+'));
-      if (type_l->is_ptr()) {
+      if (type_l->is_ptr_arr()) {
         node_r->val *= type_l->m_next->get_size();
-      } else if (type_r->is_ptr()) {
+      } else if (type_r->is_ptr_arr()) {
         node->val *= type_r->m_next->get_size();
       }
       node = create_node(NodeKind::nd_add, type, move(node), move(node_r));
@@ -304,7 +309,7 @@ unique_ptr<Node> Parser::add() {
       auto node_r = mul();
       auto [type_l, type_r] = convert_type(node->type, node_r->type);
       auto type = check_and_merge_type(type_l, type_r, lexer::Kind('-'));
-      if (type_l->is_ptr()) {
+      if (type_l->is_ptr_arr()) {
         node_r->val *= type_l->m_next->get_size();
       }
       node = create_node(NodeKind::nd_sub, type, move(node), move(node_r));
@@ -344,8 +349,8 @@ unique_ptr<Node> Parser::unary() {
     return create_node(NodeKind::nd_sub, type, move(node_l), move(node_r));
   } else if (m_ts.consume('*')) {
     auto node = unary();
-    if (!node->type->is_ptr()) {
-      m_ts.error("ptr is expected");
+    if (!node->type->is_ptr_arr()) {
+      m_ts.error("ptr/arr is expected");
     }
     auto type = node->type;
     return create_node(NodeKind::nd_deref, type->m_next, move(node));
@@ -431,7 +436,7 @@ pair<shared_ptr<type::Type>, shared_ptr<type::Type>> Parser::convert_type(
 shared_ptr<type::Type> Parser::check_and_merge_type(
     shared_ptr<type::Type> type1, shared_ptr<type::Type> type2,
     lexer::Kind op) {
-  if (type1->is_ptr() && type2->is_ptr()) {
+  if (type1->is_ptr_arr() && type2->is_ptr_arr()) {
     if (op == (lexer::Kind)'-') {
       // return type::create_int();
       m_ts.error("This operation is not supported yet.");
@@ -441,7 +446,7 @@ shared_ptr<type::Type> Parser::check_and_merge_type(
       m_ts.error("type is incompatible");
     }
 
-  } else if (type1->is_ptr()) {
+  } else if (type1->is_ptr_arr()) {
     if (type2->is_kind_of(type::Kind::type_func)) {
       m_ts.error("type is incompatible");
     }
@@ -451,7 +456,7 @@ shared_ptr<type::Type> Parser::check_and_merge_type(
       m_ts.error("type is incompatible");
     }
 
-  } else if (type2->is_ptr()) {
+  } else if (type2->is_ptr_arr()) {
     if (type1->is_kind_of(type::Kind::type_func)) {
       m_ts.error("type is incompatible");
     }
