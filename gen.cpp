@@ -65,6 +65,7 @@ void gen(unique_ptr<ast::Node> node) {
       return;
     case ast::NodeKind::nd_addr:
       gen_lval(move(node->child_vec.at(0)));
+      idx_size = 0;  // HACK: address should be 8 bytes.
       return;
     case ast::NodeKind::nd_assign:
       gen_lval(move(node->child_vec.at(0)));
