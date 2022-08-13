@@ -97,7 +97,8 @@ unique_ptr<Node> Parser::funcdef() {
     auto node_compound = compound_stmt();
 
     // TODO : this should be changed, a little bit ugly
-    node->total_size = symbol::size(symtable.local_current()) * 8;
+    // node->total_size = symbol::size(symtable.local_current()) * 8;
+    node->total_size = symtable.get_last_offset();
 
     // assign lval_vec to that of compound_stmt
     node_compound->local = symtable.local_current();
