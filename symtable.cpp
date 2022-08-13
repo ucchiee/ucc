@@ -73,7 +73,7 @@ shared_ptr<Symbol> SymTable::find_local_current_scope(
 shared_ptr<Symbol> SymTable::register_local(
     pair<lexer::Token, shared_ptr<type::Type>> tok_type_pair) {
   auto [tok, type] = tok_type_pair;
-  auto symbol = create_symbol(tok, type, get_last_offset() + 8);
+  auto symbol = create_symbol(tok, type, get_last_offset() + type->get_size());
 
   // update current (add symbol)
   auto new_current = add_symbol(local_current(), symbol);

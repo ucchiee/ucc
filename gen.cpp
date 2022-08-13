@@ -270,9 +270,18 @@ void gen(unique_ptr<ast::Node> node) {
 void gen_lval(unique_ptr<ast::Node> node) {
   // push addr of lval (i.e. rbp - 8)
   switch (node->kind) {
-    case ast::NodeKind::nd_deref:
+    case ast::NodeKind::nd_deref: {
+      size_t size = node->child_vec.at(0)->type->get_size();
+      if (size == 8) {
+        idx_size = 0;
+      } else if (size == 4) {
+        idx_size = 1;
+      } else if (size == 1) {
+        idx_size = 3;
+      }
       gen(move(node->child_vec.at(0)));
       return;
+    }
     case ast::NodeKind::nd_lval:
     case ast::NodeKind::nd_arg_decl:
       if (node->type->get_size() == 8) {

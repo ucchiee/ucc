@@ -60,10 +60,11 @@ class SymTable {
   void begin_funcdef();
   void end_funcdef();
 
+  int get_last_offset();
+
  private:
   std::vector<std::shared_ptr<Symbol>> m_local;  // local variables
   std::shared_ptr<Symbol> m_global;
-  int get_last_offset();
 };
 
 }  // namespace symbol
