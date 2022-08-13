@@ -20,7 +20,14 @@ bool Type::is_ptr_arr() {
   return is_kind_of(Kind::type_arr) || is_kind_of(Kind::type_ptr);
 }
 
-size_t Type::get_size() { return m_size; }
+size_t Type::get_total_size() { return m_size; }
+size_t Type::get_type_size() {
+  if (is_arr()) {
+    return 8;
+  } else {
+    return get_total_size();
+  }
+}
 
 shared_ptr<Type> create_type(Kind kind, size_t size) {
   auto type = make_shared<Type>();
@@ -36,7 +43,8 @@ shared_ptr<Type> create_ptr() { return create_type(Kind::type_ptr, 8); }
 shared_ptr<Type> create_func() { return create_type(Kind::type_func, -1); }
 
 shared_ptr<Type> create_arr(shared_ptr<Type> type, size_t arr_size) {
-  auto type_arr = create_type(Kind::type_arr, type->get_size() * arr_size);
+  auto type_arr =
+      create_type(Kind::type_arr, type->get_total_size() * arr_size);
   type_arr->m_arr_size = arr_size;
   type_arr->m_next = move(type);
   return type_arr;

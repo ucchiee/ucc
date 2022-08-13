@@ -300,9 +300,9 @@ unique_ptr<Node> Parser::add() {
       auto [type_l, type_r] = convert_type(node->type, node_r->type);
       auto type = check_and_merge_type(type_l, type_r, lexer::Kind('+'));
       if (type_l->is_ptr_arr()) {
-        node_r->val *= type_l->m_next->get_size();
+        node_r->val *= type_l->m_next->get_total_size();
       } else if (type_r->is_ptr_arr()) {
-        node->val *= type_r->m_next->get_size();
+        node->val *= type_r->m_next->get_total_size();
       }
       node = create_node(NodeKind::nd_add, type, move(node), move(node_r));
     } else if (m_ts.consume('-')) {
@@ -310,7 +310,7 @@ unique_ptr<Node> Parser::add() {
       auto [type_l, type_r] = convert_type(node->type, node_r->type);
       auto type = check_and_merge_type(type_l, type_r, lexer::Kind('-'));
       if (type_l->is_ptr_arr()) {
-        node_r->val *= type_l->m_next->get_size();
+        node_r->val *= type_l->m_next->get_total_size();
       }
       node = create_node(NodeKind::nd_sub, type, move(node), move(node_r));
     } else {
@@ -362,7 +362,7 @@ unique_ptr<Node> Parser::unary() {
     bool has_p = m_ts.consume('(');
     auto node = add();
     if (has_p) m_ts.expect(')');
-    return ast::create_num(node->type->get_size());
+    return ast::create_num(node->type->get_total_size());
   }
   return primary();
 }

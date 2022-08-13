@@ -50,13 +50,17 @@ void gen(unique_ptr<ast::Node> node) {
       print("  mov [rax], {}\n", arg_regs[arg_idx][idx_size]);
       return;
     }
-    case ast::NodeKind::nd_lval:
+    case ast::NodeKind::nd_lval: {
+      bool is_arr = node->type->is_arr();
       gen_lval(move(node));
       // addr of lval is on the stack top
-      print("  pop rax\n");
-      print("  mov {}, [rax]\n", regax[idx_size]);
-      print("  push rax\n");  // must be 64bit reg
+      if (!is_arr) {
+        print("  pop rax\n");
+        print("  mov {}, [rax]\n", regax[idx_size]);
+        print("  push rax\n");  // must be 64bit reg
+      }
       return;
+    }
     case ast::NodeKind::nd_deref:
       gen(move(node->child_vec.at(0)));
       print("  pop rax\n");  // addr of lval
@@ -272,26 +276,14 @@ void gen_lval(unique_ptr<ast::Node> node) {
   // push addr of lval (i.e. rbp - 8)
   switch (node->kind) {
     case ast::NodeKind::nd_deref: {
-      size_t size = node->child_vec.at(0)->type->get_size();
-      if (size == 8) {
-        idx_size = 0;
-      } else if (size == 4) {
-        idx_size = 1;
-      } else if (size == 1) {
-        idx_size = 3;
-      }
+      size_t size = node->child_vec.at(0)->type->m_next->get_type_size();
       gen(move(node->child_vec.at(0)));
+      set_idx_size(size);
       return;
     }
     case ast::NodeKind::nd_lval:
     case ast::NodeKind::nd_arg_decl:
-      if (node->type->get_size() == 8) {
-        idx_size = 0;
-      } else if (node->type->get_size() == 4) {
-        idx_size = 1;
-      } else if (node->type->get_size() == 1) {
-        idx_size = 3;
-      }
+      set_idx_size(node->type->get_type_size());
       print("  lea rax, [rbp - {}]\n", node->offset);
       print("  push rax\n");
       return;
@@ -309,4 +301,15 @@ string create_label(string name) {
   ss << label_prefix << "." << name << "." << num++;
   return ss.str();
 }
+
+void set_idx_size(size_t size) {
+  if (size == 8) {
+    idx_size = 0;
+  } else if (size == 4) {
+    idx_size = 1;
+  } else if (size == 1) {
+    idx_size = 3;
+  }
+}
+
 }  // namespace codegen
