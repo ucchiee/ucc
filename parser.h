@@ -33,10 +33,10 @@ class Parser {
   std::unique_ptr<ast::Node> assign();
   std::unique_ptr<ast::Node> equality();
   std::unique_ptr<ast::Node> relational();
-  std::unique_ptr<ast::Node> add();
-  std::unique_ptr<ast::Node> mul();
-  std::unique_ptr<ast::Node> unary();
-  std::unique_ptr<ast::Node> primary();
+  std::unique_ptr<ast::Node> add(bool convert_arr = true);
+  std::unique_ptr<ast::Node> mul(bool convert_arr = true);
+  std::unique_ptr<ast::Node> unary(bool convert_arr = true);
+  std::unique_ptr<ast::Node> primary(bool convert_arr = true);
 
   std::pair<std::shared_ptr<type::Type>, std::shared_ptr<type::Type>>
       convert_type(std::shared_ptr<type::Type>, std::shared_ptr<type::Type>);
