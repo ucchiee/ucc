@@ -25,7 +25,7 @@ unary         = ("+" | "-") unary
               | ("*" | "&") unary
               | "sizeof" add
               | primary
-primary       = num
+primary       = num ("[" expr "]")?  # num / array access
               | "(" expr ")"
-              | ident ("(" ( expr "," )* ")")?  # function call
+              | ident ("(" ( expr "," )* ")" | "[" expr "]")?  # function call / array access
 ```
