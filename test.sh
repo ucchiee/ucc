@@ -81,5 +81,7 @@ assert 4 'int main() {int *a; return sizeof(sizeof(a+1));}'
 assert 40 'int main() {int a[10]; return sizeof a;}'
 assert 1 'int main() {int a[10]; *a = 1;}'
 assert 3 'int main() {int a[2]; int *p; *a = 1; *(a+1) = 2; p = a; return *p + *(p + 1);}'
+assert 1 'int main() {int a[10]; a[0] = 1;}'
+assert 1 'int main() {int a[10]; 0[a] = 1;}'
 
 echo OK

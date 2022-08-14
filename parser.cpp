@@ -421,17 +421,31 @@ unique_ptr<Node> Parser::primary(bool convert_arr) {
       // convert arr to ptr
       if (convert_arr && node->type->is_arr()) {
         auto type = type::arr_to_ptr(node->type);
-        auto node_new = create_node(NodeKind::nd_addr, type, move(node));
-        node = move(node_new);
+        node = create_node(NodeKind::nd_addr, type, move(node));
       }
       node->offset = symbol->offset;
+
+      if (m_ts.consume('[')) {
+        auto type = node->type;
+        auto node_add = create_node(NodeKind::nd_add, type, move(node), expr());
+        node = create_node(NodeKind::nd_deref, type->m_next, move(node_add));
+        m_ts.consume(']');
+      }
       return node;
     }
   }
 
   // num
   int val = m_ts.expect_number();
-  return create_num(val);
+  node = create_num(val);
+  if (m_ts.consume('[')) {
+    auto node_expr = expr();
+    auto type = node_expr->type;
+    auto node_add = create_node(NodeKind::nd_add, type, move(node), move(node_expr));
+    node = create_node(NodeKind::nd_deref, type->m_next, move(node_add));
+    m_ts.consume(']');
+  }
+  return node;
 }
 
 pair<shared_ptr<type::Type>, shared_ptr<type::Type>> Parser::convert_type(
