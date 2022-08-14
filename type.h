@@ -24,9 +24,7 @@ class Type {
   bool is_kind_of(Kind);
   bool is_ptr();
   bool is_arr();
-  bool is_ptr_arr();
-  size_t get_total_size();
-  size_t get_type_size();
+  size_t get_size();
 
   friend std::shared_ptr<Type> create_type(Kind, size_t);
   friend std::shared_ptr<Type> create_arr(std::shared_ptr<Type> type,
@@ -50,6 +48,7 @@ std::shared_ptr<Type> create_int();
 std::shared_ptr<Type> create_ptr();
 std::shared_ptr<Type> create_func();
 std::shared_ptr<Type> create_arr(std::shared_ptr<Type> type, size_t arr_size);
+std::shared_ptr<Type> arr_to_ptr(std::shared_ptr<Type> type);
 
 std::shared_ptr<Type> add_type(std::shared_ptr<Type> type, Kind kind, int size);
 std::shared_ptr<Type> add_int(std::shared_ptr<Type> type);
