@@ -22,9 +22,8 @@ class Parser {
   std::unique_ptr<ast::Node> program();
   std::shared_ptr<type::Type> type_specifier();
   std::pair<lexer::Token, std::shared_ptr<type::Type>> declarator(
-      std::shared_ptr<type::Type> type);
+      std::shared_ptr<type::Type> type, bool global = false);
   std::pair<lexer::Token, std::shared_ptr<type::Type>> param_decl();
-  std::unique_ptr<ast::Node> funcdef();
   std::unique_ptr<ast::Node> register_args_as_local(
       std::pair<lexer::Token, std::shared_ptr<type::Type>>);
   std::unique_ptr<ast::Node> stmt();
