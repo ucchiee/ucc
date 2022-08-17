@@ -3,10 +3,11 @@
 Ucc is a (subset of) C compiler, now able to handle this grammar:
 
 ```
-program       = funcdef_decl*
+program       = (type_specifier declarator (";" | compound_stmt))*
 type_specifier= "int"
-declarator    = ident ( "[" num "]" )? | "*" declarator
-funcdef_decl  = param_decl "(" param_decl ("," param_decl)* ")" (compound_stmt | ";")
+declarator    = ident ( "[" num "]" )?
+              | "*" declarator
+              | declarator "(" param_decl ("," param_decl)* ")"
 param_decl    = type_specifier declarator
 stmt          = expr ";"
               | compound_stmt
