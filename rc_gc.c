@@ -20,6 +20,7 @@ void rc_delete(int** ptr) {
   dec_count(ptr);
   if (get_count(*ptr) == 0) {
     // TODO: Need to free children.
+    // How to identify children?
     rc_free(*ptr);
   }
 }
