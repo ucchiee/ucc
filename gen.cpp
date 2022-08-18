@@ -58,6 +58,22 @@ void gen(unique_ptr<ast::Node> node) {
       print("  push rax\n");  // must be 64bit reg
       return;
     }
+    case ast::NodeKind::nd_gval_def: {
+      string label = string(node->tok.lexeme_string, node->tok.len);
+      print(".data\n");
+      print(".globl {}\n", label);
+      print("{}:\n", label);
+      print("  .zero {}\n", node->type->get_size());
+      return;
+    }
+    case ast::NodeKind::nd_gval: {
+      gen_lval(move(node));
+      // Addr of gval is on the stack top.
+      print("  pop rax\n");
+      print("  mov {}, [rax]\n", regax[idx_size]);
+      print("  push rax\n");  // must be 64bit reg
+      return;
+    }
     case ast::NodeKind::nd_deref:
       gen(move(node->child_vec.at(0)));
       print("  pop rax\n");  // addr of lval
@@ -192,6 +208,7 @@ void gen(unique_ptr<ast::Node> node) {
     }
     case ast::NodeKind::nd_funcdef: {
       string funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+      print(".text\n");
       print(".globl {}\n", funcname);
       print("{}:\n", funcname);
 
@@ -276,6 +293,13 @@ void gen_lval(unique_ptr<ast::Node> node) {
       size_t size = node->child_vec.at(0)->type->m_next->get_size();
       gen(move(node->child_vec.at(0)));
       set_idx_size(size);
+      return;
+    }
+    case ast::NodeKind::nd_gval: {
+      string label = string(node->tok.lexeme_string, node->tok.len);
+      set_idx_size(node->type->get_size());
+      print("  lea rax, {}[rip]\n", label);
+      print("  push rax\n");
       return;
     }
     case ast::NodeKind::nd_lval:

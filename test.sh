@@ -83,5 +83,8 @@ assert 1 'int main() {int a[10]; *a = 1;}'
 assert 3 'int main() {int a[2]; int *p; *a = 1; *(a+1) = 2; p = a; return *p + *(p + 1);}'
 assert 1 'int main() {int a[10]; a[0] = 1;}'
 assert 1 'int main() {int a[10]; 0[a] = 1;}'
+assert 0 'int a; int main() {return a;}'
+assert 10 'int a; int main() {a = 10; return a;}'
+assert 23 'int a[10]; int main() {a[0] = 23; return a[0];}'
 
 echo OK

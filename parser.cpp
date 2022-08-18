@@ -17,13 +17,72 @@ using namespace ast;
 namespace parser {
 
 symbol::SymTable symtable;
+unique_ptr<ast::Node> node_func;
 
 Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
 
 unique_ptr<Node> Parser::program() {
   auto node = create_node(NodeKind::nd_program);
   while (!m_ts.at_eof()) {
-    node->add_child(funcdef());
+    symtable.begin_funcdef();
+
+    auto [tok, type] = declarator(type_specifier(), true);
+    auto symbol = symtable.find_global(tok);
+
+    if (m_ts.consume(';')) {
+      // global variable or function declaration
+      if (type->is_kind_of(type::Kind::type_func)) {
+        // Function declaration
+        if (symbol) {
+          m_ts.push_back(';');
+          if (symbol->is_defined) {
+            m_ts.error("function with the same name is already defined.");
+          } else {
+            m_ts.error("function with the same name is already declared.");
+          }
+        }
+        symtable.register_global({tok, type}, false);
+      } else {
+        // TODO: Global variables.
+        if (symbol) {
+          m_ts.push_back(';');
+          m_ts.error("Reuse of the same name.");
+        }
+        auto node_gval = create_node(NodeKind::nd_gval_def, type);
+        node_gval->tok = tok;
+        node->add_child(move(node_gval));
+        symtable.register_global({tok, type}, false);
+      }
+
+    } else {
+      // function definition
+      // First change the type of node
+      node_func->kind = ast::NodeKind::nd_funcdef;
+
+      // Check whether this is already defined.
+      // And then, register as global.
+      if (symbol) {
+        if (symbol->is_defined) {
+          m_ts.error("Already defined function");
+        } else if (*symbol->type != *type) {
+          m_ts.error("Function type is not as same as declared");
+        }
+      }
+      symtable.register_global({tok, type}, true);
+
+      // Parse function body and set total size
+      auto node_compound = compound_stmt();
+      node_func->total_size = symtable.get_last_offset();
+
+      // Register info of local variables
+      node_compound->local = symtable.local_current();
+      node_func->add_child(move(node_compound));
+
+      // Add node_func as a child of the top node.
+      node->add_child(move(node_func));
+    }
+
+    symtable.end_funcdef();
   }
   return node;
 }
@@ -38,81 +97,52 @@ shared_ptr<type::Type> Parser::type_specifier() {
 }
 
 pair<lexer::Token, shared_ptr<type::Type>> Parser::declarator(
-    shared_ptr<type::Type> type) {
+    shared_ptr<type::Type> type, bool global) {
   while (m_ts.consume('*')) {
     type = type::add_ptr(type);
   }
   lexer::Token tok = m_ts.expect_ident();
   if (m_ts.consume('[')) {
+    // Array
     int arr_size = m_ts.expect_number();
     type = type::create_arr(move(type), arr_size);
     m_ts.expect(']');
+
+  } else if (m_ts.consume('(')) {
+    if (!global) m_ts.error("Function definition/declaration is not allowed");
+    // Function definition or declaration
+
+    // Renew global variable `node_func`.
+    // Change this node type if this turns out to be function definition.
+    // See Parser::program().
+    node_func = create_node(NodeKind::nd_funcdecl);
+    node_func->tok = tok;
+
+    // Create type.
+    auto func_type = type::create_func();
+    func_type->m_ret_type = type;
+
+    // Parse function arguments.
+    int num_arg = 0;
+    while (!m_ts.consume(')')) {
+      auto [tok, param_type] = param_decl();
+      func_type->m_args_type.push_back(param_type);
+
+      auto arg_child = register_args_as_local({tok, param_type});
+      arg_child->arg_idx = num_arg++;
+      // Register local variables to the global varialbe `node_func`
+      node_func->add_child(move(arg_child));
+      m_ts.consume(',');
+    }
+    node_func->type = func_type;
+    // Need to return func_type.
+    type = func_type;
   }
   return {tok, type};
 }
 
 pair<lexer::Token, shared_ptr<type::Type>> Parser::param_decl() {
   return declarator(type_specifier());
-}
-
-unique_ptr<Node> Parser::funcdef() {
-  // ident "(" param_decl ("," param_decl)* ")" compound_stmt
-  auto node = create_node(NodeKind::nd_funcdef);
-  auto [tok, type] = param_decl();
-
-  auto func_type = type::create_func();
-  func_type->m_ret_type = type;
-  // function type is holded by node
-  node->tok = tok;
-
-  symtable.begin_funcdef();
-
-  m_ts.expect('(');
-  int num_arg = 0;
-  while (!m_ts.consume(')')) {
-    auto [tok, type] = param_decl();
-    func_type->m_args_type.push_back(type);
-
-    auto arg_child = register_args_as_local({tok, type});
-    arg_child->arg_idx = num_arg++;
-    node->add_child(move(arg_child));
-    m_ts.consume(',');
-  }
-  // register and check(TODO) function definition
-  node->type = func_type;
-  auto symbol = symtable.find_global(tok);
-
-  if (m_ts.consume(';')) {
-    // function prototype
-    symtable.register_global({tok, func_type}, false);
-    // change node type
-    node->kind = NodeKind::nd_funcdecl;
-  } else {
-    // function definition
-    // check whether this is already definded
-    if (symbol) {
-      if (symbol->is_defined) {
-        m_ts.error("Already defined function");
-      } else if (*symbol->type != *func_type) {
-        m_ts.error("Function type is not as same as declared");
-      }
-    }
-
-    symtable.register_global({tok, func_type}, true);
-    auto node_compound = compound_stmt();
-
-    // TODO : this should be changed, a little bit ugly
-    // node->total_size = symbol::size(symtable.local_current()) * 8;
-    node->total_size = symtable.get_last_offset();
-
-    // assign lval_vec to that of compound_stmt
-    node_compound->local = symtable.local_current();
-
-    node->add_child(move(node_compound));
-  }
-
-  symtable.end_funcdef();
-  return node;
 }
 
 unique_ptr<Node> Parser::register_args_as_local(
@@ -124,11 +154,10 @@ unique_ptr<Node> Parser::register_args_as_local(
   // register arg as a local value for now
   // TODO:
   // In the future, I need to fix this behavior.
-  auto lval = symtable.find_local(tok);
-  if (lval) {
+  if (symtable.find_local(tok)) {
     m_ts.error("Redefinition of arguments");
   }
-  lval = symtable.register_local({tok, type});
+  auto lval = symtable.register_local({tok, type});
   node->offset = lval->offset;
   node->tok = tok;
   node->type = type;
@@ -207,11 +236,10 @@ unique_ptr<Node> Parser::compound_stmt() {
   while (m_ts.consume(lexer::Kind::kw_int)) {
     m_ts.push_back(lexer::Kind::kw_int);
     auto [tok, type] = param_decl();
-    auto lval = symtable.find_local_current_scope(tok);
-    if (lval) {
+    if (symtable.find_local_current_scope(tok)) {
       m_ts.error("Redefinition of ident");
     }
-    lval = symtable.register_local({tok, type});
+    auto lval = symtable.register_local({tok, type});
     m_ts.expect(';');
   }
   while (!m_ts.consume('}')) {
@@ -411,10 +439,18 @@ unique_ptr<Node> Parser::primary(bool convert_arr) {
       return node;
     } else {
       // ident
-      node = create_node(NodeKind::nd_lval);
       auto symbol = symtable.find_local(tok);
-      if (!symbol) {
-        m_ts.error("Not defined ident");
+      if (symbol) {
+        // local variable
+        node = create_node(NodeKind::nd_lval);
+      } else {
+        symbol = symtable.find_global(tok);
+        if (symbol) {
+          // global variable
+          node = create_node(NodeKind::nd_gval);
+        } else {
+          m_ts.error("Not defined symbol.");
+        }
       }
       node->tok = symbol->tok;
       node->type = symbol->type;
@@ -441,7 +477,8 @@ unique_ptr<Node> Parser::primary(bool convert_arr) {
   if (m_ts.consume('[')) {
     auto node_expr = expr();
     auto type = node_expr->type;
-    auto node_add = create_node(NodeKind::nd_add, type, move(node), move(node_expr));
+    auto node_add =
+        create_node(NodeKind::nd_add, type, move(node), move(node_expr));
     node = create_node(NodeKind::nd_deref, type->m_next, move(node_add));
     m_ts.consume(']');
   }
