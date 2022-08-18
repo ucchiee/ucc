@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#define POC
+// #define POC
 
 int* rc_malloc(int size) {
   int* tmp = (int*)malloc(size);
