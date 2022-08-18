@@ -33,10 +33,25 @@ unique_ptr<Node> Parser::program() {
       // global variable or function declaration
       if (type->is_kind_of(type::Kind::type_func)) {
         // Function declaration
+        if (symbol) {
+          m_ts.push_back(';');
+          if (symbol->is_defined) {
+            m_ts.error("function with the same name is already defined.");
+          } else {
+            m_ts.error("function with the same name is already declared.");
+          }
+        }
         symtable.register_global({tok, type}, false);
       } else {
         // TODO: Global variables.
-        m_ts.error("Global Varaibles are not implemented yet");
+        if (symbol) {
+          m_ts.push_back(';');
+          m_ts.error("Reuse of the same name.");
+        }
+        auto node_gval = create_node(NodeKind::nd_gval_def, type);
+        node_gval->tok = tok;
+        node->add_child(move(node_gval));
+        symtable.register_global({tok, type}, false);
       }
 
     } else {
@@ -139,11 +154,10 @@ unique_ptr<Node> Parser::register_args_as_local(
   // register arg as a local value for now
   // TODO:
   // In the future, I need to fix this behavior.
-  auto lval = symtable.find_local(tok);
-  if (lval) {
+  if (symtable.find_local(tok)) {
     m_ts.error("Redefinition of arguments");
   }
-  lval = symtable.register_local({tok, type});
+  auto lval = symtable.register_local({tok, type});
   node->offset = lval->offset;
   node->tok = tok;
   node->type = type;
@@ -222,11 +236,10 @@ unique_ptr<Node> Parser::compound_stmt() {
   while (m_ts.consume(lexer::Kind::kw_int)) {
     m_ts.push_back(lexer::Kind::kw_int);
     auto [tok, type] = param_decl();
-    auto lval = symtable.find_local_current_scope(tok);
-    if (lval) {
+    if (symtable.find_local_current_scope(tok)) {
       m_ts.error("Redefinition of ident");
     }
-    lval = symtable.register_local({tok, type});
+    auto lval = symtable.register_local({tok, type});
     m_ts.expect(';');
   }
   while (!m_ts.consume('}')) {
@@ -426,10 +439,18 @@ unique_ptr<Node> Parser::primary(bool convert_arr) {
       return node;
     } else {
       // ident
-      node = create_node(NodeKind::nd_lval);
       auto symbol = symtable.find_local(tok);
-      if (!symbol) {
-        m_ts.error("Not defined ident");
+      if (symbol) {
+        // local variable
+        node = create_node(NodeKind::nd_lval);
+      } else {
+        symbol = symtable.find_global(tok);
+        if (symbol) {
+          // global variable
+          node = create_node(NodeKind::nd_gval);
+        } else {
+          m_ts.error("Not defined symbol.");
+        }
       }
       node->tok = symbol->tok;
       node->type = symbol->type;

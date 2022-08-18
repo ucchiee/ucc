@@ -34,6 +34,8 @@ enum class NodeKind {
   nd_lt,
   nd_le,
   nd_lval,
+  nd_gval,
+  nd_gval_def,
 };
 
 struct Node {
