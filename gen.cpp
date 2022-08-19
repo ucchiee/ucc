@@ -212,6 +212,7 @@ void gen(unique_ptr<ast::Node> node) {
       }
       // function call
       string funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+      print("  xor al, al\n");
       print("  call {}\n", funcname);
       print("  push rax\n");
       return;
