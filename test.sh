@@ -5,9 +5,14 @@ assert() {
 
 	./build/ucc "$input" >tmp.s
 	if [ "$#" = 3 ]; then
-		echo "$3" >tmp_lib.c
-		cc -c tmp_lib.c
-		cc -o tmp tmp.s tmp_lib.o
+		if [[ -e "$3" ]]; then
+			cc -c "$3"
+			cc -o tmp tmp.s "${3/.c/.o}" -fsanitize=leak
+		else
+			echo "$3" >tmp_lib.c
+			cc -c tmp_lib.c
+			cc -o tmp tmp.s tmp_lib.o
+		fi
 	else
 		cc -o tmp tmp.s
 	fi
@@ -86,5 +91,8 @@ assert 1 'int main() {int a[10]; 0[a] = 1;}'
 assert 0 'int a; int main() {return a;}'
 assert 10 'int a; int main() {a = 10; return a;}'
 assert 23 'int a[10]; int main() {a[0] = 23; return a[0];}'
+assert 24 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); @a = 24; return @a;}' './rc_gc.c'
+assert 10 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); a = rc_malloc(4); @a = 10; return @a;}' './rc_gc.c'  # only 8 bytes leaks
+assert 11 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); @a = 2; a = rc_malloc(4); @a = 11; return @a;}' './rc_gc.c'  # only 8 bytes leaks
 
 echo OK
