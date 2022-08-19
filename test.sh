@@ -7,7 +7,7 @@ assert() {
 	if [ "$#" = 3 ]; then
 		if [[ -e "$3" ]]; then
 			cc -c "$3"
-			cc -o tmp tmp.s "${3/.c/.o}" -fsanitize=leak
+			cc -o tmp tmp.s "${3/.c/.o}"
 		else
 			echo "$3" >tmp_lib.c
 			cc -c tmp_lib.c
