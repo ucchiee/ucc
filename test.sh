@@ -95,6 +95,6 @@ assert 24 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); @a = 24;
 assert 10 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); a = rc_malloc(4); @a = 10; return @a;}' './rc_gc.c'  # only 8 bytes leaks
 assert 11 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); @a = 2; a = rc_malloc(4); @a = 11; return @a;}' './rc_gc.c'  # only 8 bytes leaks
 assert 12 'int @rc_malloc(int a); int main() {{int @a; a = rc_malloc(4);} return 12;}' './rc_gc.c'
-assert 12 'int @rc_malloc(int a); int main() {{int @a; a = rc_malloc(4); return 12;}}' './rc_gc.c'
+assert 12 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); {return 12;}}' './rc_gc.c'
 
 echo OK

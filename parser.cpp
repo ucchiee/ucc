@@ -179,7 +179,7 @@ unique_ptr<Node> Parser::stmt() {
     // return
     node = create_node(NodeKind::nd_return, expr());
     // Call to rc_delete to decrement reference counter.
-    for (auto&& node_call : create_rc_delete_calls_current_scope()) {
+    for (auto&& node_call : create_rc_delete_calls_all_scope()) {
       node->add_child(move(node_call));
     }
     m_ts.expect(';');
