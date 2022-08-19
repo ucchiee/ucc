@@ -37,11 +37,13 @@ void gen(unique_ptr<ast::Node> node) {
     case ast::NodeKind::nd_return: {
       for (int i = 0; i < node->child_vec.size(); i++) {
         gen(move(node->child_vec.at(i)));
-        if (i > 0) {
-          print("  pop r10\n");  // discard return val of rc_delete
+        if (i == 0) {
+          // r12 is callee-save (non-volatile) register.
+          // So I use this register to store return value temporally.
+          print("  pop r12\n");
         }
       }
-      print("  pop rax\n");
+      print("  mov rax, r12\n");
       print("  jmp {}\n", func_ret_label);
       return;
     }
