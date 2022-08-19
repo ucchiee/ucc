@@ -179,7 +179,7 @@ unique_ptr<Node> Parser::stmt() {
     // return
     node = create_node(NodeKind::nd_return, expr());
     // Call to rc_delete to decrement reference counter.
-    for (auto&& node_call : create_rc_delete_calls()) {
+    for (auto&& node_call : create_rc_delete_calls_current_scope()) {
       node->add_child(move(node_call));
     }
     m_ts.expect(';');
@@ -260,7 +260,7 @@ unique_ptr<Node> Parser::compound_stmt() {
   }
 
   // Call to rc_delete to decrement reference counter.
-  for (auto&& node_call : create_rc_delete_calls()) {
+  for (auto&& node_call : create_rc_delete_calls_current_scope()) {
     node->add_child(move(node_call));
   }
   return node;
@@ -579,10 +579,11 @@ shared_ptr<type::Type> Parser::check_and_merge_type(
   return type1;
 }
 
-std::vector<unique_ptr<ast::Node>> create_rc_delete_calls() {
+vector<unique_ptr<ast::Node>> create_rc_delete_calls(
+    vector<shared_ptr<symbol::Symbol>> vec_symbol) {
   vector<unique_ptr<ast::Node>> v;
   // Call to rc_delete to decrement reference counter.
-  for (auto symbol : symtable.find_all_mptr_in_current_scope()) {
+  for (auto symbol : vec_symbol) {
     // Create nd_lval node.
     auto node_lval = create_node(NodeKind::nd_lval_m_ptr);
     node_lval->tok = symbol->tok;
@@ -600,6 +601,14 @@ std::vector<unique_ptr<ast::Node>> create_rc_delete_calls() {
     v.push_back(move(node_funcall));
   }
   return v;
+}
+
+vector<unique_ptr<ast::Node>> create_rc_delete_calls_all_scope() {
+  return create_rc_delete_calls(symtable.find_all_mptr());
+}
+
+vector<unique_ptr<ast::Node>> create_rc_delete_calls_current_scope() {
+  return create_rc_delete_calls(symtable.find_all_mptr_in_current_scope());
 }
 
 }  // namespace parser

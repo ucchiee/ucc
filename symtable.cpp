@@ -43,6 +43,18 @@ shared_ptr<Symbol> find_symbol(shared_ptr<Symbol> symbol,
   }
 }
 
+std::vector<std::shared_ptr<Symbol>> find_all_symbol(
+    std::shared_ptr<Symbol> symbol, type::Kind kind) {
+  vector<shared_ptr<symbol::Symbol>> v;
+  while (symbol) {
+    if (symbol->type->is_kind_of(kind)) {
+      v.push_back(symbol);
+    }
+    symbol = symbol->next;
+  }
+  return v;
+}
+
 int size(shared_ptr<Symbol> symbol) {
   if (symbol == nullptr) {
     return 0;
@@ -70,16 +82,17 @@ shared_ptr<Symbol> SymTable::find_local_current_scope(
   return find_symbol(local_current(), token);
 }
 
-vector<shared_ptr<symbol::Symbol>> SymTable::find_all_mptr_in_current_scope() {
-  vector<shared_ptr<symbol::Symbol>> v;
-  auto current_symbol = local_current();
-  while (current_symbol) {
-    if (current_symbol->type->is_m_ptr()) {
-      v.push_back(current_symbol);
-    }
-    current_symbol = current_symbol->next;
+std::vector<std::shared_ptr<symbol::Symbol>> SymTable::find_all_mptr() {
+  vector<shared_ptr<Symbol>> v_ret;
+  for (auto i = m_local.size() - 1; i != -1; i--) {
+    auto v = find_all_symbol(m_local.at(i), type::Kind::type_m_ptr);
+    v_ret.insert(v_ret.end(), v.begin(), v.end());
   }
-  return v;
+  return v_ret;
+}
+
+vector<shared_ptr<symbol::Symbol>> SymTable::find_all_mptr_in_current_scope() {
+  return find_all_symbol(local_current(), type::Kind::type_m_ptr);
 }
 
 shared_ptr<Symbol> SymTable::register_local(
