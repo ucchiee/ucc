@@ -20,6 +20,7 @@ symbol::SymTable symtable;
 unique_ptr<ast::Node> node_func;
 
 char l_rc_update[10] = {"rc_update"};
+char l_rc_delete[10] = {"rc_delete"};
 
 Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
 
@@ -177,6 +178,10 @@ unique_ptr<Node> Parser::stmt() {
   if (m_ts.consume(lexer::Kind::kw_return)) {
     // return
     node = create_node(NodeKind::nd_return, expr());
+    // Call to rc_delete to decrement reference counter.
+    for (auto&& node_call : create_rc_delete_calls()) {
+      node->add_child(move(node_call));
+    }
     m_ts.expect(';');
 
   } else if (m_ts.consume(lexer::Kind::kw_if)) {
@@ -253,6 +258,11 @@ unique_ptr<Node> Parser::compound_stmt() {
   while (!m_ts.consume('}')) {
     node->add_child(stmt());
   }
+
+  // Call to rc_delete to decrement reference counter.
+  for (auto&& node_call : create_rc_delete_calls()) {
+    node->add_child(move(node_call));
+  }
   return node;
 }
 
@@ -275,8 +285,7 @@ unique_ptr<Node> Parser::assign() {
       node_func->add_child(move(node_addr));
       node_func->add_child(move(node_r));
       lexer::Token tok = {
-          lexer::Kind::tk_id,
-          l_rc_update,
+          lexer::Kind::tk_id, l_rc_update,
           static_cast<int>(strlen(l_rc_update)),  // that is, 9
       };
       node_func->tok = tok;
@@ -569,4 +578,28 @@ shared_ptr<type::Type> Parser::check_and_merge_type(
   }
   return type1;
 }
+
+std::vector<unique_ptr<ast::Node>> create_rc_delete_calls() {
+  vector<unique_ptr<ast::Node>> v;
+  // Call to rc_delete to decrement reference counter.
+  for (auto symbol : symtable.find_all_mptr_in_current_scope()) {
+    // Create nd_lval node.
+    auto node_lval = create_node(NodeKind::nd_lval_m_ptr);
+    node_lval->tok = symbol->tok;
+    node_lval->type = symbol->type;  // type_m_ptr
+    node_lval->offset = symbol->offset;
+
+    // Create nd_funcall node.
+    auto node_funcall = create_node(NodeKind::nd_funcall, move(node_lval));
+    node_funcall->type = type::create_int();  // TODO: Should be void.
+    lexer::Token tok_func = {lexer::Kind::tk_id, l_rc_delete,
+                             static_cast<int>(strlen(l_rc_delete))};
+    node_funcall->tok = tok_func;
+
+    // Add to the compound node
+    v.push_back(move(node_funcall));
+  }
+  return v;
+}
+
 }  // namespace parser

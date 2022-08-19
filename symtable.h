@@ -47,6 +47,7 @@ class SymTable {
   std::shared_ptr<symbol::Symbol> find_local(const lexer::Token &token);
   std::shared_ptr<symbol::Symbol> find_local_current_scope(
       const lexer::Token &token);
+  std::vector<std::shared_ptr<symbol::Symbol>> find_all_mptr_in_current_scope();
   std::shared_ptr<symbol::Symbol> register_local(
       std::pair<lexer::Token, std::shared_ptr<type::Type>>);
   std::shared_ptr<symbol::Symbol> find_global(const lexer::Token &token);

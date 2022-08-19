@@ -24,6 +24,8 @@ static vector<string> reg10 = {"r10", "r10d", "r10w", "r10b"};
 static vector<string> reg9 = {"r9", "r9d", "r9w", "r9b"};
 static vector<string> reg8 = {"r8", "r8d", "r8w", "r8b"};
 
+static string func_ret_label;
+
 void gen(unique_ptr<ast::Node> node) {
   vector<vector<string>> arg_regs{regdi, regsi, regdx, regcx, reg8, reg9};
   switch (node->kind) {
@@ -32,13 +34,17 @@ void gen(unique_ptr<ast::Node> node) {
         gen(move(child));
       }
       return;
-    case ast::NodeKind::nd_return:
-      gen(move(node->child_vec.at(0)));
+    case ast::NodeKind::nd_return: {
+      for (int i = 0; i < node->child_vec.size(); i++) {
+        gen(move(node->child_vec.at(i)));
+        if (i > 0) {
+          print("  pop r10\n");  // discard return val of rc_delete
+        }
+      }
       print("  pop rax\n");
-      print("  mov rsp, rbp\n");
-      print("  pop rbp\n");
-      print("  ret\n");
+      print("  jmp {}\n", func_ret_label);
       return;
+    }
     case ast::NodeKind::nd_num:
       print("  push {}\n", node->val);
       return;
@@ -48,6 +54,15 @@ void gen(unique_ptr<ast::Node> node) {
       // addr of lval is on the stack top
       print("  pop rax\n");
       print("  mov [rax], {}\n", arg_regs[arg_idx][idx_size]);
+      return;
+    }
+    case ast::NodeKind::nd_lval_m_ptr: {
+      auto type = node->type;
+      gen_lval(move(node));
+      // addr of lval_m_ptr is on the stack top
+      print("  pop rax\n");
+      print("  mov {}, [rax]\n", regax[idx_size]);
+      print("  push rax\n");  // must be 64bit reg
       return;
     }
     case ast::NodeKind::nd_lval: {
@@ -218,7 +233,11 @@ void gen(unique_ptr<ast::Node> node) {
       return;
     }
     case ast::NodeKind::nd_funcdef: {
+      // Set funcname and func_ret_label
       string funcname = {node->tok.lexeme_string, (unsigned long)node->tok.len};
+      stringstream ss;
+      ss << label_prefix << ".ret." << funcname;
+      func_ret_label = ss.str();
       print(".text\n");
       print(".globl {}\n", funcname);
       print("{}:\n", funcname);
@@ -238,6 +257,7 @@ void gen(unique_ptr<ast::Node> node) {
       print("  pop rax\n");
 
       // epiloge
+      print("{}:\n", func_ret_label);
       print("  mov rsp, rbp\n");
       print("  pop rbp\n");
       print("  ret\n");
@@ -314,6 +334,7 @@ void gen_lval(unique_ptr<ast::Node> node) {
       return;
     }
     case ast::NodeKind::nd_lval:
+    case ast::NodeKind::nd_lval_m_ptr:
     case ast::NodeKind::nd_arg_decl:
       set_idx_size(node->type->get_size());
       print("  lea rax, [rbp - {}]\n", node->offset);

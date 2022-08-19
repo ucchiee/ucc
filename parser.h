@@ -47,4 +47,6 @@ class Parser {
   lexer::TokenStream &m_ts;
 };
 
+std::vector<std::unique_ptr<ast::Node>> create_rc_delete_calls();
+
 }  // namespace parser

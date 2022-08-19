@@ -70,6 +70,18 @@ shared_ptr<Symbol> SymTable::find_local_current_scope(
   return find_symbol(local_current(), token);
 }
 
+vector<shared_ptr<symbol::Symbol>> SymTable::find_all_mptr_in_current_scope() {
+  vector<shared_ptr<symbol::Symbol>> v;
+  auto current_symbol = local_current();
+  while (current_symbol) {
+    if (current_symbol->type->is_m_ptr()) {
+      v.push_back(current_symbol);
+    }
+    current_symbol = current_symbol->next;
+  }
+  return v;
+}
+
 shared_ptr<Symbol> SymTable::register_local(
     pair<lexer::Token, shared_ptr<type::Type>> tok_type_pair) {
   auto [tok, type] = tok_type_pair;
