@@ -51,10 +51,20 @@ void gen(unique_ptr<ast::Node> node) {
       return;
     }
     case ast::NodeKind::nd_lval: {
+      auto type = node->type;
       gen_lval(move(node));
       // addr of lval is on the stack top
       print("  pop rax\n");
       print("  mov {}, [rax]\n", regax[idx_size]);
+
+      // Make addr of m_ptr canonical
+      if (type && type->is_m_ptr()) {
+        // Upper 16bits are as same as 47bit
+        // Use arithmetic shift to accomplish this.
+        print("  sal rax, 16\n");
+        print("  sar rax, 16\n");
+        print("  add rax, 4\n");  // Skip counter region.
+      }
       print("  push rax\n");  // must be 64bit reg
       return;
     }

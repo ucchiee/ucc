@@ -19,6 +19,8 @@ namespace parser {
 symbol::SymTable symtable;
 unique_ptr<ast::Node> node_func;
 
+char l_rc_update[10] = {"rc_update"};
+
 Parser::Parser(lexer::TokenStream& ts) : m_ts{ts} {}
 
 unique_ptr<Node> Parser::program() {
@@ -98,8 +100,14 @@ shared_ptr<type::Type> Parser::type_specifier() {
 
 pair<lexer::Token, shared_ptr<type::Type>> Parser::declarator(
     shared_ptr<type::Type> type, bool global) {
-  while (m_ts.consume('*')) {
-    type = type::add_ptr(type);
+  for (;;) {
+    if (m_ts.consume('*')) {
+      type = type::add_ptr(type);
+    } else if (m_ts.consume('@')) {
+      type = type::add_m_ptr(type);
+    } else {
+      break;
+    }
   }
   lexer::Token tok = m_ts.expect_ident();
   if (m_ts.consume('[')) {
@@ -256,7 +264,27 @@ unique_ptr<Node> Parser::assign() {
     auto node_r = assign();
     auto [type_l, type_r] = convert_type(node->type, node_r->type);
     auto type = check_and_merge_type(type_l, type_r, (lexer::Kind)'=');
-    return create_node(NodeKind::nd_assign, type, move(node), move(node_r));
+
+    // Check type (if type is m_ptr, then call rc_update)
+    if (type->is_m_ptr()) {
+      // Call rc_update to assign m_ptr.
+      auto node_addr =
+          create_node(NodeKind::nd_addr, type::add_ptr(type_l), move(node));
+      // Create nd_funcall node.
+      auto node_func = create_node(NodeKind::nd_funcall, type);
+      node_func->add_child(move(node_addr));
+      node_func->add_child(move(node_r));
+      lexer::Token tok = {
+          lexer::Kind::tk_id,
+          l_rc_update,
+          static_cast<int>(strlen(l_rc_update)),  // that is, 9
+      };
+      node_func->tok = tok;
+      return node_func;
+    } else {
+      // Normal assignment
+      return create_node(NodeKind::nd_assign, type, move(node), move(node_r));
+    }
   } else if (m_ts.consume(lexer::Kind::op_add_into)) {
     auto node_r = assign();
     auto [type_l, type_r] = convert_type(node->type, node_r->type);
@@ -386,6 +414,13 @@ unique_ptr<Node> Parser::unary(bool convert_arr) {
     auto node = unary(false);
     auto type = node->type;
     return create_node(NodeKind::nd_addr, type::add_ptr(type), move(node));
+  } else if (m_ts.consume('@')) {
+    auto node = unary(convert_arr);
+    if (!node->type->is_m_ptr()) {
+      m_ts.error("m_ptr is expected");
+    }
+    auto type = node->type;
+    return create_node(NodeKind::nd_deref, type->m_next, move(node));
   } else if (m_ts.consume(lexer::Kind::kw_sizeof)) {
     bool has_p = m_ts.consume('(');
     auto node = add(false);
