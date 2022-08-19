@@ -9,6 +9,7 @@ enum class Kind : int {
   type_func,
   type_int,
   type_ptr,
+  type_m_ptr,
   type_arr,
 };
 
@@ -23,6 +24,7 @@ class Type {
 
   bool is_kind_of(Kind);
   bool is_ptr();
+  bool is_m_ptr();
   bool is_arr();
   size_t get_size();
 
@@ -53,6 +55,7 @@ std::shared_ptr<Type> arr_to_ptr(std::shared_ptr<Type> type);
 std::shared_ptr<Type> add_type(std::shared_ptr<Type> type, Kind kind, int size);
 std::shared_ptr<Type> add_int(std::shared_ptr<Type> type);
 std::shared_ptr<Type> add_ptr(std::shared_ptr<Type> type);
+std::shared_ptr<Type> add_m_ptr(std::shared_ptr<Type> type);
 
 bool operator==(const Type &, const Type &);
 bool operator!=(const Type &, const Type &);

@@ -7,6 +7,7 @@ program       = (type_specifier declarator (";" | compound_stmt))*
 type_specifier= "int"
 declarator    = ident ( "[" num "]" )?
               | "*" declarator
+              | "@" declarator
               | declarator "(" param_decl ("," param_decl)* ")"
 param_decl    = type_specifier declarator
 stmt          = expr ";"
@@ -24,6 +25,7 @@ add           = mul ("+" mul | "-" mul)*
 mul           = unary ("*" unary | "/" unary)*
 unary         = ("+" | "-") unary
               | ("*" | "&") unary
+              | "@" unary
               | "sizeof" add
               | primary
 primary       = num ("[" expr "]")?  # num / array access

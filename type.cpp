@@ -14,6 +14,8 @@ bool Type::is_kind_of(Kind kind) { return m_kind == kind; }
 
 bool Type::is_ptr() { return is_kind_of(Kind::type_ptr); }
 
+bool Type::is_m_ptr() { return is_kind_of(Kind::type_m_ptr); }
+
 bool Type::is_arr() { return is_kind_of(Kind::type_arr); }
 
 size_t Type::get_size() { return m_size; }
@@ -57,6 +59,10 @@ shared_ptr<Type> add_int(shared_ptr<Type> type) {
 
 shared_ptr<Type> add_ptr(shared_ptr<Type> type) {
   return add_type(type, Kind::type_ptr, 8);
+}
+
+shared_ptr<Type> add_m_ptr(shared_ptr<Type> type) {
+  return add_type(type, Kind::type_m_ptr, 8);
 }
 
 bool operator==(const Type &type1, const Type &type2) {
