@@ -94,10 +94,16 @@ void gen(unique_ptr<ast::Node> node) {
       return;
     }
     case ast::NodeKind::nd_gval: {
+      auto type = node->type;
       gen_lval(move(node));
       // Addr of gval is on the stack top.
       print("  pop rax\n");
       print("  mov {}, [rax]\n", regax[idx_size]);
+      if (type && type->is_m_ptr()) {
+        print("  sal rax, 16\n");
+        print("  sar rax, 16\n");
+        print("  add rax, 4\n");
+      }
       print("  push rax\n");  // must be 64bit reg
       return;
     }
