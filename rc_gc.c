@@ -5,7 +5,7 @@
 // #define POC
 
 void* rc_malloc(int size) {
-  void* tmp = (void*)malloc(size + 4);
+  void* tmp = malloc(size + 4);
   set_count(tmp, 0);
   return make_defined(tmp);
 }
@@ -14,6 +14,7 @@ void rc_free(void* ptr) { free(delete_flag(ptr)); }
 
 void rc_delete(void* ptr) {
   if (!is_defined(ptr)) return;
+  // if (get_count(ptr) == 0) return;
   dec_count(ptr);
   if (get_count(ptr) == 0) {
     // TODO: Need to free children.
@@ -23,8 +24,8 @@ void rc_delete(void* ptr) {
 }
 
 void rc_update(void** dst, void* src) {
-  rc_delete(*dst);
   inc_count(src);
+  rc_delete(*dst);
   *dst = src;
 }
 
@@ -64,7 +65,7 @@ void* delete_flag(void* ptr) {
 
 #ifdef POC
 int main(int argc, char* argv[]) {
-  void *mptr, *tmp;
+  void* mptr;
   for (;;) {
     rc_update(&mptr, rc_malloc(1024));
   }
