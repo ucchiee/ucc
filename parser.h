@@ -6,6 +6,7 @@
 
 #include "ast.h"
 #include "lexer.h"
+#include "symtable.h"
 #include "type.h"
 
 namespace parser {
@@ -46,5 +47,10 @@ class Parser {
  private:
   lexer::TokenStream &m_ts;
 };
+
+std::vector<std::unique_ptr<ast::Node>> create_rc_delete_calls(
+    std::vector<std::shared_ptr<symbol::Symbol>>);
+std::vector<std::unique_ptr<ast::Node>> create_rc_delete_calls_all_scope();
+std::vector<std::unique_ptr<ast::Node>> create_rc_delete_calls_current_scope();
 
 }  // namespace parser

@@ -7,7 +7,8 @@ assert() {
 	if [ "$#" = 3 ]; then
 		if [[ -e "$3" ]]; then
 			cc -c "$3"
-			cc -o tmp tmp.s "${3/.c/.o}"
+			cc -o tmp tmp.s "${3/.c/.o}" -fsanitize=leak
+			# cc -o tmp tmp.s "${3/.c/.o}"
 		else
 			echo "$3" >tmp_lib.c
 			cc -c tmp_lib.c
@@ -92,7 +93,15 @@ assert 0 'int a; int main() {return a;}'
 assert 10 'int a; int main() {a = 10; return a;}'
 assert 23 'int a[10]; int main() {a[0] = 23; return a[0];}'
 assert 24 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); @a = 24; return @a;}' './rc_gc.c'
-assert 10 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); a = rc_malloc(4); @a = 10; return @a;}' './rc_gc.c'  # only 8 bytes leaks
-assert 11 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); @a = 2; a = rc_malloc(4); @a = 11; return @a;}' './rc_gc.c'  # only 8 bytes leaks
+assert 10 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); a = rc_malloc(4); @a = 10; return @a;}' './rc_gc.c'         # only 8 bytes leaks
+assert 11 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); @a = 2; a = rc_malloc(4); @a = 11; return @a;}' './rc_gc.c' # only 8 bytes leaks
+assert 12 'int @rc_malloc(int a); int main() {{int @a; a = rc_malloc(4);} return 12;}' './rc_gc.c'
+assert 13 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); {return 13;}}' './rc_gc.c'
+assert 14 'int @rc_malloc(int a); int main() {int @a; {a = rc_malloc(4);} return 14;}' './rc_gc.c'
+assert 24 'int @rc_malloc(int a); int main() {int @a; a = rc_malloc(4); a = a; @a = 24; return @a;}' './rc_gc.c'
+assert 10 'int @rc_malloc(int a); int main() { int i; int @a; for(i = 0; i < 1024; i+=1) { a = rc_malloc(1024 * 1024 * 1024); } return 10; }' './rc_gc.c'
+# assert 11 'int @rc_malloc(int a); int main() { int i; int @ptr; for (;;) { ptr = rc_malloc(4 * 1024); } return 11;}' './rc_gc.c'
+assert 11 'int @rc_malloc(int a); int main() { int i; for (i = 0; i < 1024; i+=1) { int @ptr; ptr = rc_malloc(4 * 1024); } return 11; }' './rc_gc.c'
+assert 12 'int @rc_malloc(int a); int @a; int main() {a = rc_malloc(4); @a = 12; return @a;}' './rc_gc.c'
 
 echo OK

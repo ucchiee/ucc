@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "lexer.h"
+#include "type.h"
 
 namespace symbol {
 
@@ -33,6 +34,8 @@ std::shared_ptr<Symbol> add_symbol(std::shared_ptr<Symbol>,
                                    std::shared_ptr<Symbol>);
 std::shared_ptr<Symbol> find_symbol(std::shared_ptr<Symbol> symbol,
                                     const lexer::Token &tok);
+std::vector<std::shared_ptr<Symbol>> find_all_symbol(
+    std::shared_ptr<Symbol> symbol, type::Kind kind);
 int size(std::shared_ptr<Symbol>);
 
 class SymTable {
@@ -47,6 +50,8 @@ class SymTable {
   std::shared_ptr<symbol::Symbol> find_local(const lexer::Token &token);
   std::shared_ptr<symbol::Symbol> find_local_current_scope(
       const lexer::Token &token);
+  std::vector<std::shared_ptr<symbol::Symbol>> find_all_mptr();
+  std::vector<std::shared_ptr<symbol::Symbol>> find_all_mptr_in_current_scope();
   std::shared_ptr<symbol::Symbol> register_local(
       std::pair<lexer::Token, std::shared_ptr<type::Type>>);
   std::shared_ptr<symbol::Symbol> find_global(const lexer::Token &token);
