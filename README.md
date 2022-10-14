@@ -153,7 +153,7 @@ make test
 Ucc implements reference counting garbage collection.
 
 Pointer type variables declared using "`@`" instead of "`*`" (managed pointers) are managed automatically.
-Differences between normal pointers and managed pointers are that the region o managed pointers have to be allocated using `rc_malloc()` instead of `malloc()` and you don't need to `free` explicitly.
+Differences between normal pointers and managed pointers are that the regions of managed pointers have to be allocated using `rc_malloc()` instead of `malloc()` and you don't need to `free` explicitly.
 
 Note that reference counting garbage collection cannot free circular references.
 This means that ucc leaks circular reference structure.
